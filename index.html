@@ -532,24 +532,69 @@ function playSound(type){
 }
 
 // ========== TTS ==========
-let ttsAudio=null;
+// Best voice selection for iPad/iOS Safari + desktop Chrome
+let bestVoice=null;
+function findBestVoice(){
+  const v=speechSynthesis.getVoices();
+  if(!v.length)return null;
+  // Priority list — iPad has great "Enhanced" and "Premium" voices
+  const prefs=[
+    'Samantha (Enhanced)','Samantha','Zoe (Enhanced)','Zoe',
+    'Fiona (Enhanced)','Fiona','Moira (Enhanced)','Moira',
+    'Tessa (Enhanced)','Tessa','Karen (Enhanced)','Karen',
+    'Google US English','Google UK English Female',
+    'Microsoft Zira','Microsoft Jenny',
+  ];
+  for(const name of prefs){
+    const found=v.find(x=>x.name===name);
+    if(found)return found;
+  }
+  // Fallback: any high-quality English voice (prefer female for kid-friendly warmth)
+  const enhanced=v.find(x=>x.lang.startsWith('en')&&(x.name.includes('Enhanced')||x.name.includes('Premium')));
+  if(enhanced)return enhanced;
+  const female=v.find(x=>x.lang.startsWith('en')&&!x.name.includes('Male')&&x.localService);
+  if(female)return female;
+  return v.find(x=>x.lang.startsWith('en'))||v[0];
+}
+
+// Voices load async on many browsers — retry until found
+function loadVoices(){
+  bestVoice=findBestVoice();
+  if(!bestVoice)setTimeout(loadVoices,200);
+}
+speechSynthesis.onvoiceschanged=()=>{bestVoice=findBestVoice()};
+loadVoices();
+
 async function speak(text){
   if(!cfg.tts)return;
-  const clean=text.replace(/[\u{1F000}-\u{1FFFF}]/gu,'').replace(/\[.*?\]/g,'').replace(/[*_#`]/g,'').trim();
-  if(!clean)return;
-  // Try OpenAI TTS first (sounds great)
-  if(cfg.provider==='openai'||cfg.provider==='anthropic'){
-    // Use browser TTS as fallback but with better voice selection
-    if(ttsAudio){ttsAudio.pause();ttsAudio=null}
-    const u=new SpeechSynthesisUtterance(clean);
-    u.rate=0.95;u.pitch=1.15;u.volume=1;
-    const voices=speechSynthesis.getVoices();
-    const pick=voices.find(v=>v.name.includes('Samantha'))||voices.find(v=>v.name.includes('Karen'))||voices.find(v=>v.name.includes('Google')&&v.lang.startsWith('en'))||voices.find(v=>v.lang.startsWith('en'));
-    if(pick)u.voice=pick;
-    speechSynthesis.cancel();speechSynthesis.speak(u);
+  // Strip emoji, markdown, bracket tags
+  const clean=text.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE00}-\u{FEFF}]/gu,'')
+    .replace(/\[.*?\]/g,'').replace(/[*_#`]/g,'').replace(/\s+/g,' ').trim();
+  if(!clean||clean.length<2)return;
+
+  speechSynthesis.cancel();
+
+  // Break into sentences for more natural pacing (long utterances sound worse)
+  const sentences=clean.match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[clean];
+
+  for(let i=0;i<sentences.length;i++){
+    const s=sentences[i].trim();
+    if(!s)continue;
+    const u=new SpeechSynthesisUtterance(s);
+    // Slightly slower + higher pitch = friendlier, more animated for a kid
+    u.rate=0.88;
+    u.pitch=1.2;
+    u.volume=1;
+    if(bestVoice)u.voice=bestVoice;
+    // Small pause between sentences for natural feel
+    if(i>0)await new Promise(r=>setTimeout(r,150));
+    speechSynthesis.speak(u);
+    // Wait for this sentence to finish before next
+    if(i<sentences.length-1){
+      await new Promise(r=>{u.onend=r;u.onerror=r;setTimeout(r,5000)});
+    }
   }
 }
-speechSynthesis.onvoiceschanged=()=>{};
 
 // ========== STT ==========
 let rec,listening=false;
