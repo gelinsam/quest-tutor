@@ -11,291 +11,249 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Quest Tutor</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Baloo+2:wght@500;600;700;800&display=swap');
 
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-
 :root{
-  --bg:#0f0e2a;--bg2:#1a1940;--bg3:#252358;
-  --green:#22c55e;--green-glow:#22c55e55;
-  --gold:#fbbf24;--gold-glow:#fbbf2444;
-  --diamond:#38bdf8;--diamond-glow:#38bdf844;
-  --red:#ef4444;--pink:#ec4899;
-  --purple:#a855f7;--orange:#f97316;
-  --card:rgba(255,255,255,0.06);--card-border:rgba(255,255,255,0.1);
-  --text:#f1f5f9;--text-dim:rgba(255,255,255,0.45);
-  --radius:16px;
+  --bg:#0a0a2e;--bg2:#141440;--bg3:#1e1e5a;
+  --green:#22c55e;--green2:#4ade80;
+  --gold:#fbbf24;--gold2:#fde68a;
+  --blue:#38bdf8;--blue2:#7dd3fc;
+  --red:#ef4444;--pink:#f472b6;
+  --purple:#a855f7;--purple2:#c084fc;
+  --orange:#f97316;--orange2:#fdba74;
+  --text:#f8fafc;--dim:rgba(255,255,255,0.4);
 }
 
+html,body{height:100%;height:100dvh;overflow:hidden}
 body{
-  font-family:'Fredoka',sans-serif;
+  font-family:'Baloo 2','Fredoka',sans-serif;
   background:var(--bg);color:var(--text);
-  height:100vh;height:100dvh;overflow:hidden;
-  touch-action:manipulation;
-  -webkit-user-select:none;user-select:none;
+  touch-action:manipulation;-webkit-user-select:none;user-select:none;
+  display:flex;flex-direction:column;
 }
 
-.pixel{font-family:'Press Start 2P',monospace}
+/* === ANIMATED BG === */
+#bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.star{position:absolute;border-radius:50%;background:white;animation:twinkle var(--d) ease-in-out infinite alternate}
+@keyframes twinkle{0%{opacity:.15;transform:scale(.8)}100%{opacity:.7;transform:scale(1.2)}}
 
-/* ============ PARTICLES BACKGROUND ============ */
-#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+/* === SETUP SCREEN === */
+#setup{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:12px;overflow-y:auto}
+#setup.gone{display:none}
 
-/* ============ SCREENS ============ */
-.screen{display:none;position:absolute;top:0;left:0;width:100%;height:100%;height:100dvh;flex-direction:column;z-index:1}
-.screen.active{display:flex}
-.screen-enter{animation:screenIn .35s ease}
-@keyframes screenIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.s-mascot{font-size:80px;animation:bounce 2s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-18px) rotate(5deg)}}
+.s-title{font-size:clamp(28px,7vw,42px);font-weight:800;background:linear-gradient(135deg,var(--gold),var(--orange),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;line-height:1.1}
+.s-sub{font-size:15px;color:var(--dim);text-align:center;max-width:300px;line-height:1.5}
 
-/* ============ SETUP ============ */
-#setup{align-items:center;justify-content:center;padding:24px;gap:14px;overflow-y:auto}
-.setup-logo{font-size:56px;animation:float 3s ease-in-out infinite}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-.setup-title{font-family:'Press Start 2P';font-size:clamp(16px,4vw,22px);color:var(--gold);text-shadow:0 0 20px var(--gold-glow);text-align:center}
-.setup-sub{font-size:14px;color:var(--text-dim);text-align:center;max-width:300px;line-height:1.5}
-
-.field-group{width:100%;max-width:340px}
-.field-label{font-size:11px;font-weight:600;color:var(--diamond);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;margin-top:12px}
-
-.field-input{
-  width:100%;padding:13px 16px;font-size:16px;font-family:'Fredoka';
-  background:var(--bg2);border:2px solid var(--card-border);border-radius:12px;
-  color:white;outline:none;transition:border .2s
+.s-group{width:100%;max-width:340px;margin-top:4px}
+.s-label{font-size:12px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px}
+.s-input{
+  width:100%;padding:14px 18px;font-size:17px;font-family:inherit;
+  background:var(--bg2);border:2.5px solid rgba(255,255,255,.12);border-radius:16px;
+  color:white;outline:none;transition:border .2s,box-shadow .2s
 }
-.field-input:focus{border-color:var(--diamond)}
-.field-input::placeholder{color:var(--text-dim)}
+.s-input:focus{border-color:var(--blue);box-shadow:0 0 20px rgba(56,189,248,.2)}
+.s-input::placeholder{color:var(--dim)}
 
-.pill-row{display:flex;gap:8px;width:100%;max-width:340px}
-.pill{
-  flex:1;padding:11px 8px;text-align:center;border-radius:12px;
-  font-size:13px;font-weight:600;cursor:pointer;
-  border:2px solid var(--card-border);background:var(--bg2);
-  transition:all .2s;color:var(--text-dim)
+.s-pills{display:flex;gap:8px;width:100%;max-width:340px}
+.s-pill{
+  flex:1;padding:12px 8px;text-align:center;border-radius:14px;
+  font-size:14px;font-weight:700;cursor:pointer;
+  border:2.5px solid rgba(255,255,255,.1);background:var(--bg2);
+  transition:all .25s;color:var(--dim)
 }
-.pill.on{border-color:var(--diamond);background:var(--diamond-glow);color:white}
+.s-pill.on{border-color:var(--blue);background:rgba(56,189,248,.12);color:white;transform:scale(1.04);box-shadow:0 0 16px rgba(56,189,248,.2)}
 
-.big-btn{
-  font-family:'Press Start 2P';font-size:12px;padding:16px 36px;margin-top:16px;
+.s-chars{display:flex;gap:10px;width:100%;max-width:340px}
+.s-char{
+  flex:1;padding:14px 8px;text-align:center;border-radius:18px;cursor:pointer;
+  border:3px solid rgba(255,255,255,.08);background:var(--bg2);transition:all .25s
+}
+.s-char.on{border-color:var(--gold);background:rgba(251,191,36,.08);transform:scale(1.06);box-shadow:0 0 20px rgba(251,191,36,.15)}
+.s-char-emoji{font-size:36px;display:block;margin-bottom:4px}
+.s-char-name{font-size:11px;font-weight:700;color:var(--gold2)}
+
+.s-go{
+  font-family:inherit;font-size:20px;font-weight:800;padding:16px 48px;margin-top:12px;
   background:linear-gradient(135deg,var(--green),#16a34a);color:white;
-  border:none;border-radius:14px;cursor:pointer;
-  box-shadow:0 4px 20px var(--green-glow);transition:transform .1s
+  border:none;border-radius:50px;cursor:pointer;
+  box-shadow:0 6px 30px rgba(34,197,94,.35);transition:transform .15s;
+  letter-spacing:.5px;text-transform:uppercase
 }
-.big-btn:active{transform:scale(.95)}
+.s-go:active{transform:scale(.93)}
+.s-note{font-size:10px;color:var(--dim);text-align:center;max-width:300px;line-height:1.4;margin-top:4px}
 
-.note{font-size:10px;color:var(--text-dim);text-align:center;max-width:300px;line-height:1.4;margin-top:8px}
+/* === MAIN APP === */
+#app{display:none;flex:1;flex-direction:column;position:relative;z-index:1;height:100%;height:100dvh}
+#app.on{display:flex}
 
-/* ============ HUD ============ */
+/* === TOP BAR (HUD) === */
 .hud{
   display:flex;align-items:center;justify-content:space-between;
-  padding:8px 14px;background:rgba(0,0,0,.45);
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  z-index:10;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.06)
+  padding:8px 14px;background:rgba(0,0,0,.5);backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);flex-shrink:0;z-index:10;
+  border-bottom:1px solid rgba(255,255,255,.06)
 }
-.hud-left,.hud-right{display:flex;align-items:center;gap:8px}
-
+.hud-left{display:flex;align-items:center;gap:10px}
 .hud-avatar{
-  width:34px;height:34px;border-radius:10px;
-  background:linear-gradient(135deg,var(--purple),var(--pink));
+  width:40px;height:40px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  font-size:18px;border:2px solid rgba(255,255,255,.2);
-  box-shadow:0 0 12px rgba(168,85,247,.3)
+  font-size:22px;border:3px solid var(--gold);
+  background:linear-gradient(135deg,var(--purple),var(--pink));
+  box-shadow:0 0 12px rgba(168,85,247,.4);animation:avatarPulse 3s ease infinite
 }
+@keyframes avatarPulse{0%,100%{box-shadow:0 0 12px rgba(168,85,247,.4)}50%{box-shadow:0 0 24px rgba(168,85,247,.6)}}
 
-.hud-lv{
-  font-family:'Press Start 2P';font-size:9px;color:var(--gold);
-  background:rgba(0,0,0,.4);padding:3px 8px;border-radius:6px;
-  box-shadow:0 0 8px var(--gold-glow)
-}
+.hud-info{display:flex;flex-direction:column;gap:2px}
+.hud-lv{font-size:11px;font-weight:800;color:var(--gold);letter-spacing:1px}
+.xp-bar{width:80px;height:7px;background:rgba(255,255,255,.08);border-radius:10px;overflow:hidden}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--green2));border-radius:10px;transition:width .6s cubic-bezier(.4,0,.2,1)}
 
-.xp-bar{width:70px;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
-.xp-fill{height:100%;background:linear-gradient(90deg,var(--green),#4ade80);border-radius:4px;transition:width .6s cubic-bezier(.4,0,.2,1)}
-
-.hud-stat{font-family:'Press Start 2P';font-size:8px;display:flex;align-items:center;gap:3px}
+.hud-right{display:flex;align-items:center;gap:12px}
+.hud-stat{display:flex;align-items:center;gap:3px;font-size:13px;font-weight:700}
 .hud-streak{color:var(--orange)}
 .hud-coins{color:var(--gold)}
-.hud-gems{color:var(--diamond)}
+.hud-gems{color:var(--blue)}
+.hud-gear{background:none;border:none;font-size:22px;cursor:pointer;padding:4px}
 
-.hud-btn{background:none;border:none;font-size:20px;cursor:pointer;padding:4px}
-
-/* ============ NAV TABS ============ */
-.nav{
-  display:flex;padding:6px 12px;gap:6px;overflow-x:auto;flex-shrink:0;
-  -webkit-overflow-scrolling:touch;scrollbar-width:none
+/* === CHARACTER DISPLAY === */
+.char-area{
+  display:flex;flex-direction:column;align-items:center;padding:12px 16px 0;flex-shrink:0
 }
-.nav::-webkit-scrollbar{display:none}
-
-.nav-tab{
-  flex-shrink:0;padding:8px 16px;border-radius:24px;
-  font-size:13px;font-weight:600;cursor:pointer;
-  background:var(--card);border:1.5px solid transparent;
-  color:var(--text-dim);transition:all .2s;white-space:nowrap
+.char-bubble{
+  position:relative;max-width:92%;padding:16px 20px;
+  background:linear-gradient(135deg,var(--bg2),var(--bg3));
+  border:2px solid rgba(255,255,255,.1);border-radius:24px;
+  font-size:17px;line-height:1.6;font-weight:500;
+  box-shadow:0 8px 30px rgba(0,0,0,.3);
+  min-height:60px;transition:all .3s
 }
-.nav-tab.on{
+.char-bubble::after{
+  content:'';position:absolute;bottom:-12px;left:50%;transform:translateX(-50%);
+  border-left:14px solid transparent;border-right:14px solid transparent;
+  border-top:14px solid var(--bg3)
+}
+.char-bubble.thinking{opacity:.6}
+.char-bubble .typing-dots{display:inline-flex;gap:4px;align-items:center}
+.typing-dots span{width:8px;height:8px;background:var(--blue);border-radius:50%;animation:dotBounce 1.2s ease infinite}
+.typing-dots span:nth-child(2){animation-delay:.15s}
+.typing-dots span:nth-child(3){animation-delay:.3s}
+@keyframes dotBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-8px)}}
+
+.char-display{font-size:72px;margin:4px 0;animation:charIdle 3s ease-in-out infinite;filter:drop-shadow(0 4px 12px rgba(0,0,0,.5))}
+@keyframes charIdle{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-6px) scale(1.03)}}
+.char-display.happy{animation:charHappy .5s ease}
+@keyframes charHappy{0%{transform:scale(1) rotate(0)}25%{transform:scale(1.2) rotate(-10deg)}50%{transform:scale(1.3) rotate(10deg)}75%{transform:scale(1.15) rotate(-5deg)}100%{transform:scale(1) rotate(0)}}
+.char-display.sad{animation:charSad .5s ease}
+@keyframes charSad{0%{transform:scale(1)}50%{transform:scale(.85) translateY(6px)}100%{transform:scale(1)}}
+
+/* === SUBJECT TABS === */
+.tabs{display:flex;padding:8px 12px;gap:7px;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  flex-shrink:0;padding:10px 18px;border-radius:50px;
+  font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;
+  background:rgba(255,255,255,.06);border:2px solid transparent;
+  color:var(--dim);transition:all .25s
+}
+.tab.on{
   background:linear-gradient(135deg,rgba(56,189,248,.15),rgba(168,85,247,.15));
-  border-color:var(--diamond);color:white;
-  box-shadow:0 0 12px var(--diamond-glow)
+  border-color:var(--blue);color:white;
+  box-shadow:0 0 16px rgba(56,189,248,.2);transform:scale(1.04)
 }
 
-/* ============ BOTTOM BAR ============ */
-.bottom-bar{
-  display:flex;background:rgba(0,0,0,.55);
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  border-top:1px solid rgba(255,255,255,.06);flex-shrink:0;z-index:10
+/* === ANSWER BUTTONS === */
+.answers{flex:1;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:8px 16px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.ans-btn{
+  width:100%;padding:18px 22px;border-radius:20px;
+  font-size:18px;font-weight:700;font-family:inherit;cursor:pointer;
+  border:3px solid rgba(255,255,255,.1);background:var(--bg2);
+  color:white;transition:all .2s;text-align:left;
+  display:flex;align-items:center;gap:14px;
+  box-shadow:0 4px 16px rgba(0,0,0,.2)
 }
-.bb-btn{
-  flex:1;padding:8px 0 6px;text-align:center;cursor:pointer;
-  border:none;background:none;color:var(--text-dim);
-  font-size:10px;font-weight:600;transition:color .2s;
+.ans-btn:active{transform:scale(.96)}
+.ans-btn .ans-letter{
+  width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:800;flex-shrink:0;
+  background:linear-gradient(135deg,var(--purple),var(--blue));
+  box-shadow:0 2px 10px rgba(168,85,247,.3)
+}
+.ans-btn:nth-child(1) .ans-letter{background:linear-gradient(135deg,var(--blue),#0ea5e9)}
+.ans-btn:nth-child(2) .ans-letter{background:linear-gradient(135deg,var(--purple),var(--pink))}
+.ans-btn:nth-child(3) .ans-letter{background:linear-gradient(135deg,var(--orange),var(--red))}
+.ans-btn:nth-child(4) .ans-letter{background:linear-gradient(135deg,var(--green),#059669)}
+
+.ans-btn.correct{border-color:var(--green);background:rgba(34,197,94,.15);animation:correctPop .4s ease}
+@keyframes correctPop{0%{transform:scale(1)}30%{transform:scale(1.06)}100%{transform:scale(1)}}
+.ans-btn.wrong{border-color:var(--red);background:rgba(239,68,68,.12);animation:wrongShake .4s ease}
+@keyframes wrongShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+
+/* Free text input */
+.free-input-bar{
+  display:none;padding:10px 14px;gap:10px;flex-shrink:0;align-items:flex-end;
+  background:rgba(0,0,0,.4);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-top:1px solid rgba(255,255,255,.06)
+}
+.free-input-bar.on{display:flex}
+.free-field{
+  flex:1;padding:13px 18px;font-size:17px;font-family:inherit;
+  background:var(--bg2);border:2.5px solid rgba(255,255,255,.1);border-radius:50px;
+  color:white;outline:none;resize:none;min-height:44px;max-height:80px;line-height:1.3
+}
+.free-field:focus{border-color:var(--blue)}
+.free-field::placeholder{color:var(--dim)}
+.circle-btn{
+  width:48px;height:48px;border-radius:50%;border:none;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;cursor:pointer;flex-shrink:0;transition:transform .15s
+}
+.circle-btn:active{transform:scale(.88)}
+.mic-btn{background:linear-gradient(135deg,var(--orange),var(--red))}
+.mic-btn.listening{background:linear-gradient(135deg,var(--green),#059669);animation:pulse 1.2s ease infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.4)}50%{box-shadow:0 0 0 16px rgba(34,197,94,0)}}
+.send-btn{background:linear-gradient(135deg,var(--blue),#0284c7)}
+
+/* === BOTTOM NAV === */
+.bottom-nav{
+  display:flex;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-top:1px solid rgba(255,255,255,.06);flex-shrink:0;z-index:10;
+  padding-bottom:env(safe-area-inset-bottom)
+}
+.bn-btn{
+  flex:1;padding:10px 0 6px;text-align:center;cursor:pointer;
+  border:none;background:none;color:var(--dim);
+  font-size:11px;font-weight:700;font-family:inherit;transition:color .2s;
   display:flex;flex-direction:column;align-items:center;gap:2px
 }
-.bb-btn .bb-icon{font-size:22px;transition:transform .2s}
-.bb-btn.on{color:var(--diamond)}
-.bb-btn.on .bb-icon{transform:scale(1.15)}
+.bn-icon{font-size:24px;transition:transform .2s}
+.bn-btn.on{color:var(--blue)}
+.bn-btn.on .bn-icon{transform:scale(1.15)}
 
-/* ============ CHAT ============ */
-.chat-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.chat{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
-
-.msg{max-width:82%;padding:12px 16px;border-radius:18px;font-size:15px;line-height:1.55;animation:msgPop .3s ease}
-@keyframes msgPop{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
-
-.msg.bot{
-  align-self:flex-start;border-bottom-left-radius:4px;
-  background:var(--bg2);border:1px solid var(--card-border);
-  position:relative
-}
-.msg.bot .bot-name{
-  font-size:11px;font-weight:700;
-  background:linear-gradient(90deg,var(--diamond),var(--purple));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  margin-bottom:3px
-}
-
-.msg.user{
-  align-self:flex-end;border-bottom-right-radius:4px;
-  background:linear-gradient(135deg,var(--purple),#7c3aed);
-  box-shadow:0 2px 12px rgba(168,85,247,.25)
-}
-
-.msg.sys{
-  align-self:center;background:transparent;
-  color:var(--text-dim);font-size:12px;text-align:center;max-width:90%
-}
-
-.typing{
-  display:none;align-self:flex-start;padding:12px 18px;
-  background:var(--bg2);border:1px solid var(--card-border);
-  border-radius:18px;border-bottom-left-radius:4px;gap:5px;align-items:center
-}
-.typing.on{display:flex}
-.tdot{width:7px;height:7px;background:var(--text-dim);border-radius:50%;animation:tbounce 1.2s ease infinite}
-.tdot:nth-child(2){animation-delay:.15s}
-.tdot:nth-child(3){animation-delay:.3s}
-@keyframes tbounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
-
-/* Quick replies */
-.qr-wrap{display:flex;flex-wrap:wrap;gap:7px;padding:4px 14px 8px;flex-shrink:0}
-.qr{
-  padding:10px 18px;border-radius:24px;font-size:14px;font-weight:600;
-  cursor:pointer;border:2px solid var(--card-border);background:var(--bg2);
-  color:white;transition:all .15s;animation:msgPop .3s ease
-}
-.qr:active{transform:scale(.95)}
-
-/* Input */
-.input-bar{
-  display:flex;gap:8px;padding:10px 14px;flex-shrink:0;
-  background:rgba(0,0,0,.4);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  align-items:flex-end;border-top:1px solid rgba(255,255,255,.06)
-}
-
-.input-field{
-  flex:1;padding:11px 16px;font-size:16px;font-family:'Fredoka';
-  background:var(--bg2);border:2px solid var(--card-border);border-radius:24px;
-  color:white;outline:none;resize:none;min-height:42px;max-height:90px;line-height:1.4
-}
-.input-field:focus{border-color:var(--diamond)}
-.input-field::placeholder{color:var(--text-dim)}
-
-.circle-btn{
-  width:44px;height:44px;border-radius:50%;border:none;
-  display:flex;align-items:center;justify-content:center;
-  font-size:20px;cursor:pointer;flex-shrink:0;transition:transform .15s
-}
-.circle-btn:active{transform:scale(.9)}
-.mic-btn{background:linear-gradient(135deg,var(--red),#dc2626)}
-.mic-btn.listening{background:linear-gradient(135deg,var(--green),#16a34a);animation:pulse 1.2s ease infinite}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.4)}50%{box-shadow:0 0 0 14px rgba(34,197,94,0)}}
-.send-btn{background:linear-gradient(135deg,var(--diamond),#0284c7)}
-
-/* ============ PETS SCREEN ============ */
-.pets-area{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
-.pets-title{font-family:'Press Start 2P';font-size:12px;color:var(--gold);text-align:center;margin-bottom:4px}
-.pets-sub{font-size:13px;color:var(--text-dim);text-align:center;margin-bottom:16px}
-
-.pet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding-bottom:20px}
-
-.pet-card{
-  background:var(--card);border:2px solid var(--card-border);border-radius:16px;
-  padding:14px 8px;text-align:center;cursor:pointer;transition:all .2s;
-  position:relative;overflow:hidden
-}
-.pet-card.unlocked{border-color:var(--green);background:rgba(34,197,94,.08)}
-.pet-card.locked{opacity:.45;filter:grayscale(.6)}
-.pet-card.active{border-color:var(--gold);background:rgba(251,191,36,.1);box-shadow:0 0 16px var(--gold-glow)}
-.pet-card:active{transform:scale(.96)}
-
-.pet-emoji{font-size:36px;display:block;margin-bottom:6px}
-.pet-name{font-size:11px;font-weight:700;color:white}
-.pet-cost{font-size:9px;color:var(--gold);margin-top:2px;font-weight:600}
-.pet-card.unlocked .pet-cost{color:var(--green)}
-.pet-lock{position:absolute;top:6px;right:6px;font-size:12px}
-
-/* ============ ACHIEVEMENTS ============ */
-.ach-area{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
-.ach-title{font-family:'Press Start 2P';font-size:12px;color:var(--gold);text-align:center;margin-bottom:16px}
-.ach-grid{display:flex;flex-direction:column;gap:8px;padding-bottom:20px}
-
-.ach-card{
-  display:flex;align-items:center;gap:12px;padding:14px 16px;
-  background:var(--card);border:1.5px solid var(--card-border);border-radius:14px;
-  transition:all .2s
-}
-.ach-card.earned{border-color:var(--gold);background:rgba(251,191,36,.06)}
-.ach-icon{font-size:28px;flex-shrink:0}
-.ach-info{flex:1}
-.ach-name{font-size:14px;font-weight:700}
-.ach-desc{font-size:11px;color:var(--text-dim)}
-.ach-badge{font-family:'Press Start 2P';font-size:8px;color:var(--gold)}
-.ach-card:not(.earned) .ach-icon{filter:grayscale(1);opacity:.4}
-
-/* ============ OVERLAYS ============ */
+/* === REWARD OVERLAYS === */
 .overlay{
-  position:fixed;top:0;left:0;width:100%;height:100%;z-index:200;
-  display:none;align-items:center;justify-content:center;flex-direction:column;
-  background:rgba(0,0,0,.88);gap:16px;padding:24px
+  position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;
+  flex-direction:column;background:rgba(0,0,0,.88);gap:16px;padding:24px
 }
 .overlay.show{display:flex}
-
-.ov-emoji{font-size:72px;animation:float 2s ease-in-out infinite}
-.ov-title{font-family:'Press Start 2P';font-size:clamp(14px,4vw,20px);color:var(--gold);text-align:center;text-shadow:0 0 20px var(--gold-glow)}
-.ov-sub{font-size:15px;color:var(--text-dim);text-align:center}
-.ov-dismiss{font-family:'Press Start 2P';font-size:9px;color:var(--text-dim);cursor:pointer;padding:16px;margin-top:8px}
-
-/* Treasure chest */
-.chest-closed{font-size:80px;cursor:pointer;transition:transform .2s}
-.chest-closed:active{transform:scale(1.1)}
+.ov-emoji{font-size:80px;animation:bounce 1s ease-in-out infinite}
+.ov-title{font-size:clamp(22px,6vw,32px);font-weight:800;background:linear-gradient(135deg,var(--gold),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;text-shadow:none}
+.ov-sub{font-size:16px;color:var(--dim);text-align:center}
+.ov-dismiss{font-size:13px;color:var(--dim);cursor:pointer;padding:16px;margin-top:8px;font-weight:600}
 
 /* XP float */
 .xp-fly{
-  position:fixed;font-family:'Press Start 2P';font-size:16px;color:var(--gold);
-  pointer-events:none;z-index:250;text-shadow:0 0 10px var(--gold-glow);
-  animation:fly 1.3s ease forwards
+  position:fixed;font-size:22px;font-weight:800;color:var(--gold);
+  pointer-events:none;z-index:250;text-shadow:0 0 12px rgba(251,191,36,.5);
+  animation:fly 1.4s ease forwards
 }
-@keyframes fly{0%{opacity:1;transform:translateY(0) scale(.6)}25%{opacity:1;transform:translateY(-18px) scale(1.15)}100%{opacity:0;transform:translateY(-70px) scale(.7)}}
+@keyframes fly{0%{opacity:1;transform:translateY(0) scale(.6)}25%{opacity:1;transform:translateY(-22px) scale(1.2)}100%{opacity:0;transform:translateY(-80px) scale(.7)}}
 
 /* Confetti */
 .confetti-piece{
-  position:fixed;width:10px;height:10px;z-index:300;pointer-events:none;
+  position:fixed;width:10px;height:10px;z-index:300;pointer-events:none;border-radius:2px;
   animation:confettiFall var(--dur) ease forwards
 }
 @keyframes confettiFall{
@@ -303,659 +261,710 @@ body{
   100%{opacity:0;transform:translateY(var(--dy)) translateX(var(--dx)) rotate(var(--rot)) scale(.3)}
 }
 
-/* Settings */
+/* Screen shake */
+.shake{animation:screenShake .3s ease}
+@keyframes screenShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+
+/* Correct flash */
+.flash-green{animation:flashG .4s ease}
+@keyframes flashG{0%{background:var(--bg)}30%{background:rgba(34,197,94,.12)}100%{background:var(--bg)}}
+
+/* === SETTINGS === */
 .settings{
-  position:fixed;top:0;left:0;width:100%;height:100%;z-index:300;
-  background:var(--bg);display:none;flex-direction:column;overflow-y:auto;padding:20px
+  position:fixed;inset:0;z-index:300;background:var(--bg);
+  display:none;flex-direction:column;overflow-y:auto;padding:20px
 }
 .settings.show{display:flex}
-.settings-close{align-self:flex-end;font-size:28px;background:none;border:none;color:white;cursor:pointer;padding:8px}
-.settings-hdr{font-family:'Press Start 2P';font-size:10px;color:var(--diamond);margin:16px 0 8px}
-.settings-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)}
-.settings-row label{font-size:14px;color:rgba(255,255,255,.8)}
+.settings-close{align-self:flex-end;font-size:30px;background:none;border:none;color:white;cursor:pointer;padding:8px}
+.settings-hdr{font-size:13px;font-weight:800;color:var(--blue);margin:16px 0 8px;letter-spacing:1px;text-transform:uppercase}
+.settings-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.settings-row label{font-size:15px;color:rgba(255,255,255,.8);font-weight:600}
 .tog{
-  width:48px;height:26px;border-radius:13px;cursor:pointer;position:relative;
+  width:50px;height:28px;border-radius:14px;cursor:pointer;position:relative;
   background:rgba(255,255,255,.15);border:none;transition:background .2s
 }
 .tog.on{background:var(--green)}
 .tog::after{
-  content:'';position:absolute;width:20px;height:20px;border-radius:50%;
+  content:'';position:absolute;width:22px;height:22px;border-radius:50%;
   background:white;top:3px;left:3px;transition:transform .2s
 }
 .tog.on::after{transform:translateX(22px)}
-.reset-btn{background:var(--red);border:none;color:white;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer}
+.stat-val{font-size:15px;font-weight:700;color:var(--gold)}
+.reset-btn{background:var(--red);border:none;color:white;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:12px}
+
+/* === PETS SCREEN === */
+.page{display:none;flex:1;flex-direction:column;overflow:hidden}
+.page.on{display:flex}
+.page-scroll{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
+.page-title{font-size:20px;font-weight:800;color:var(--gold);text-align:center;margin-bottom:4px}
+.page-sub{font-size:14px;color:var(--dim);text-align:center;margin-bottom:16px}
+
+.pet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding-bottom:20px}
+.pet-card{
+  background:rgba(255,255,255,.04);border:2.5px solid rgba(255,255,255,.08);border-radius:18px;
+  padding:14px 8px;text-align:center;cursor:pointer;transition:all .25s;position:relative;overflow:hidden
+}
+.pet-card.unlocked{border-color:var(--green);background:rgba(34,197,94,.06)}
+.pet-card.locked{opacity:.4;filter:grayscale(.6)}
+.pet-card.active{border-color:var(--gold);background:rgba(251,191,36,.08);box-shadow:0 0 20px rgba(251,191,36,.15)}
+.pet-card:active{transform:scale(.95)}
+.pet-emoji{font-size:40px;display:block;margin-bottom:6px}
+.pet-name{font-size:12px;font-weight:700}
+.pet-cost{font-size:10px;color:var(--gold);margin-top:2px;font-weight:700}
+.pet-card.unlocked .pet-cost{color:var(--green)}
+.pet-lock{position:absolute;top:6px;right:6px;font-size:13px}
+
+/* === ACHIEVEMENTS === */
+.ach-grid{display:flex;flex-direction:column;gap:8px;padding-bottom:20px}
+.ach-card{
+  display:flex;align-items:center;gap:14px;padding:16px 18px;
+  background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.06);border-radius:16px;transition:all .2s
+}
+.ach-card.earned{border-color:var(--gold);background:rgba(251,191,36,.05)}
+.ach-icon{font-size:30px;flex-shrink:0}
+.ach-info{flex:1}
+.ach-name{font-size:15px;font-weight:700}
+.ach-desc{font-size:12px;color:var(--dim)}
+.ach-badge{font-size:11px;font-weight:800;color:var(--gold)}
+.ach-card:not(.earned) .ach-icon{filter:grayscale(1);opacity:.35}
 </style>
 </head>
 <body>
 
-<canvas id="bg-canvas"></canvas>
+<div id="bg"></div>
 
 <!-- ====== SETUP ====== -->
-<div id="setup" class="screen active">
-  <div class="setup-logo">⚔️</div>
-  <div class="setup-title">QUEST TUTOR</div>
-  <div class="setup-sub">Your personal AI learning adventure. Set up in 2 minutes!</div>
+<div id="setup">
+  <div class="s-mascot">🧙‍♂️</div>
+  <div class="s-title">QUEST TUTOR</div>
+  <div class="s-sub">Your personal AI learning adventure! Set up in 2 minutes.</div>
 
-  <div class="field-group">
-    <div class="field-label">AI Provider</div>
-    <div class="pill-row">
-      <div class="pill on" data-p="anthropic" onclick="pickPill(this,'provider')">Claude</div>
-      <div class="pill" data-p="openai" onclick="pickPill(this,'provider')">OpenAI</div>
-      <div class="pill" data-p="groq" onclick="pickPill(this,'provider')">Groq (Free)</div>
+  <div class="s-group">
+    <div class="s-label">AI Provider</div>
+    <div class="s-pills">
+      <div class="s-pill on" data-p="anthropic" onclick="sPill(this,'provider')">Claude</div>
+      <div class="s-pill" data-p="openai" onclick="sPill(this,'provider')">OpenAI</div>
+      <div class="s-pill" data-p="groq" onclick="sPill(this,'provider')">Groq</div>
     </div>
 
-    <div class="field-label">API Key</div>
-    <input class="field-input" id="f-key" type="password" placeholder="sk-ant-... or sk-..." autocomplete="off">
+    <div class="s-label" style="margin-top:14px">API Key</div>
+    <input class="s-input" id="f-key" type="password" placeholder="sk-...">
 
-    <div class="field-label">Child's First Name</div>
-    <input class="field-input" id="f-name" type="text" placeholder="Enter name">
+    <div class="s-label" style="margin-top:14px">Child's First Name</div>
+    <input class="s-input" id="f-name" placeholder="e.g. Max">
+  </div>
 
-    <div class="field-label">Tutor Character</div>
-    <div class="pill-row">
-      <div class="pill on" data-p="explorer" onclick="pickPill(this,'char')">🧭 Explorer</div>
-      <div class="pill" data-p="gamer" onclick="pickPill(this,'char')">🎮 Gamer</div>
-      <div class="pill" data-p="scientist" onclick="pickPill(this,'char')">🔬 Scientist</div>
+  <div class="s-group">
+    <div class="s-label">Choose Your Guide</div>
+    <div class="s-chars">
+      <div class="s-char on" data-c="explorer" onclick="sChar(this)">
+        <span class="s-char-emoji">🧭</span>
+        <span class="s-char-name">Captain Quest</span>
+      </div>
+      <div class="s-char" data-c="gamer" onclick="sChar(this)">
+        <span class="s-char-emoji">🎮</span>
+        <span class="s-char-name">Pixel</span>
+      </div>
+      <div class="s-char" data-c="scientist" onclick="sChar(this)">
+        <span class="s-char-emoji">🔬</span>
+        <span class="s-char-name">Dr. Spark</span>
+      </div>
     </div>
   </div>
 
-  <button class="big-btn" onclick="launch()">START ADVENTURE ▶</button>
-  <div class="note">Your API key stays on this device only. Nothing is tracked. No ads.</div>
+  <button class="s-go" onclick="startApp()">START ADVENTURE</button>
+  <div class="s-note">Your API key stays on this device only. Never sent anywhere except the AI provider.</div>
 </div>
 
-<!-- ====== MAIN ====== -->
-<div id="main" class="screen">
+<!-- ====== MAIN APP ====== -->
+<div id="app">
   <!-- HUD -->
   <div class="hud">
     <div class="hud-left">
-      <div class="hud-avatar" id="hud-avatar">⛏️</div>
-      <div class="hud-lv" id="hud-lv">LV 1</div>
-      <div class="xp-bar"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
+      <div class="hud-avatar" id="hud-avatar">🧭</div>
+      <div class="hud-info">
+        <div class="hud-lv" id="hud-lv">LV 1</div>
+        <div class="xp-bar"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
+      </div>
     </div>
     <div class="hud-right">
-      <div class="hud-stat hud-streak" id="hud-streak">🔥0</div>
-      <div class="hud-stat hud-coins" id="hud-coins">💰0</div>
-      <div class="hud-stat hud-gems" id="hud-gems">💎0</div>
-      <button class="hud-btn" onclick="openSettings()">⚙️</button>
+      <div class="hud-stat hud-streak">🔥 <span id="hud-streak">0</span></div>
+      <div class="hud-stat hud-coins">🪙 <span id="hud-coins">0</span></div>
+      <div class="hud-stat hud-gems">💎 <span id="hud-gems">0</span></div>
+      <button class="hud-gear" onclick="toggleSettings()">⚙️</button>
     </div>
   </div>
 
-  <!-- Subject nav -->
-  <div class="nav" id="nav">
-    <div class="nav-tab on" data-s="free" onclick="pickSubject(this)">💬 Chat</div>
-    <div class="nav-tab" data-s="math" onclick="pickSubject(this)">🔢 Math</div>
-    <div class="nav-tab" data-s="reading" onclick="pickSubject(this)">📖 Reading</div>
-    <div class="nav-tab" data-s="science" onclick="pickSubject(this)">🔬 Science</div>
-    <div class="nav-tab" data-s="creative" onclick="pickSubject(this)">🎨 Create</div>
+  <!-- Subject Tabs -->
+  <div class="tabs">
+    <div class="tab on" data-s="math" onclick="switchSubject(this)">🔢 Math</div>
+    <div class="tab" data-s="reading" onclick="switchSubject(this)">📖 Reading</div>
+    <div class="tab" data-s="science" onclick="switchSubject(this)">🔬 Science</div>
+    <div class="tab" data-s="free" onclick="switchSubject(this)">💬 Free Talk</div>
+    <div class="tab" data-s="creative" onclick="switchSubject(this)">🎨 Create</div>
   </div>
 
-  <!-- Content pages -->
-  <div id="page-chat" class="chat-wrap" style="display:flex">
-    <div class="chat" id="chat"></div>
-    <div class="typing" id="typing"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div>
-    <div class="qr-wrap" id="qr"></div>
-    <div class="input-bar">
-      <textarea class="input-field" id="inp" placeholder="Type or tap 🎤 to talk..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}"></textarea>
+  <!-- Pages -->
+  <div class="page on" id="page-learn">
+    <!-- Character + speech bubble -->
+    <div class="char-area">
+      <div class="char-bubble" id="bubble">
+        <div class="typing-dots"><span></span><span></span><span></span></div>
+      </div>
+      <div class="char-display" id="char-display">🧭</div>
+    </div>
+
+    <!-- Answer buttons -->
+    <div class="answers" id="answers"></div>
+
+    <!-- Free input for free talk / creative -->
+    <div class="free-input-bar" id="free-bar">
       <button class="circle-btn mic-btn" id="mic" onclick="toggleMic()">🎤</button>
-      <button class="circle-btn send-btn" onclick="send()">➡️</button>
+      <textarea class="free-field" id="inp" rows="1" placeholder="Type here..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}"></textarea>
+      <button class="circle-btn send-btn" onclick="send()">➤</button>
     </div>
   </div>
 
-  <div id="page-pets" class="pets-area" style="display:none">
-    <div class="pets-title">🐾 MY PETS</div>
-    <div class="pets-sub">Earn coins to unlock new companions!</div>
-    <div class="pet-grid" id="pet-grid"></div>
+  <div class="page" id="page-pets">
+    <div class="page-scroll">
+      <div class="page-title">🐾 My Pets</div>
+      <div class="page-sub">Earn coins to unlock companions!</div>
+      <div class="pet-grid" id="pet-grid"></div>
+    </div>
   </div>
 
-  <div id="page-ach" class="ach-area" style="display:none">
-    <div class="ach-title">🏆 ACHIEVEMENTS</div>
-    <div class="ach-grid" id="ach-grid"></div>
+  <div class="page" id="page-ach">
+    <div class="page-scroll">
+      <div class="page-title">🏆 Achievements</div>
+      <div class="ach-grid" id="ach-grid"></div>
+    </div>
   </div>
 
-  <!-- Bottom bar -->
-  <div class="bottom-bar">
-    <button class="bb-btn on" data-pg="chat" onclick="pickPage(this)"><span class="bb-icon">💬</span>Learn</button>
-    <button class="bb-btn" data-pg="pets" onclick="pickPage(this)"><span class="bb-icon">🐾</span>Pets</button>
-    <button class="bb-btn" data-pg="ach" onclick="pickPage(this)"><span class="bb-icon">🏆</span>Awards</button>
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <button class="bn-btn on" data-pg="learn" onclick="pickPage(this)"><span class="bn-icon">📚</span>Learn</button>
+    <button class="bn-btn" data-pg="pets" onclick="pickPage(this)"><span class="bn-icon">🐾</span>Pets</button>
+    <button class="bn-btn" data-pg="ach" onclick="pickPage(this)"><span class="bn-icon">🏆</span>Awards</button>
   </div>
 </div>
 
-<!-- Overlays -->
-<div class="overlay" id="ov-levelup">
-  <div class="ov-emoji">⭐</div>
-  <div class="ov-title" id="ov-lv-text">LEVEL 2!</div>
-  <div class="ov-sub">You're getting smarter every day!</div>
-  <div class="ov-dismiss" onclick="closeOv('ov-levelup')">TAP TO CONTINUE</div>
-</div>
-
-<div class="overlay" id="ov-chest">
-  <div class="ov-title">TREASURE CHEST!</div>
-  <div class="ov-sub">You earned a reward! Tap to open!</div>
-  <div class="chest-closed" id="chest-icon" onclick="openChest()">🎁</div>
-  <div class="ov-sub" id="chest-result" style="display:none"></div>
-  <div class="ov-dismiss" id="chest-dismiss" style="display:none" onclick="closeOv('ov-chest')">TAP TO CONTINUE</div>
-</div>
-
-<div class="overlay" id="ov-ach">
-  <div class="ov-emoji" id="ov-ach-emoji">🏅</div>
-  <div class="ov-title" id="ov-ach-title">ACHIEVEMENT!</div>
-  <div class="ov-sub" id="ov-ach-desc"></div>
-  <div class="ov-dismiss" onclick="closeOv('ov-ach')">TAP TO CONTINUE</div>
-</div>
-
-<div class="overlay" id="ov-pet">
-  <div class="ov-emoji" id="ov-pet-emoji">🐶</div>
-  <div class="ov-title" id="ov-pet-title">NEW PET!</div>
-  <div class="ov-sub" id="ov-pet-desc"></div>
-  <div class="ov-dismiss" onclick="closeOv('ov-pet')">TAP TO CONTINUE</div>
+<!-- Level-up / chest / achievement overlay -->
+<div class="overlay" id="overlay" onclick="dismissOverlay()">
+  <div class="ov-emoji" id="ov-emoji">⬆️</div>
+  <div class="ov-title" id="ov-title">LEVEL UP!</div>
+  <div class="ov-sub" id="ov-sub">You reached Level 2!</div>
+  <div class="ov-dismiss">Tap anywhere to continue</div>
 </div>
 
 <!-- Settings -->
 <div class="settings" id="settings">
-  <button class="settings-close" onclick="closeSettings()">✕</button>
-  <div class="settings-hdr">VOICE</div>
-  <div class="settings-row"><label>Read aloud</label><button class="tog on" id="t-tts" onclick="this.classList.toggle('on');cfg.tts=this.classList.contains('on');save()"></button></div>
-  <div class="settings-row"><label>Voice input</label><button class="tog on" id="t-stt" onclick="this.classList.toggle('on');cfg.stt=this.classList.contains('on');save()"></button></div>
-  <div class="settings-hdr">STATS</div>
-  <div class="settings-row"><label>Questions answered</label><span id="s-total" style="color:var(--gold);font-weight:700">0</span></div>
-  <div class="settings-row"><label>Correct</label><span id="s-correct" style="color:var(--green);font-weight:700">0</span></div>
-  <div class="settings-row"><label>Best streak</label><span id="s-streak" style="color:var(--orange);font-weight:700">0</span></div>
-  <div class="settings-row"><label>Pets collected</label><span id="s-pets" style="color:var(--diamond);font-weight:700">0</span></div>
-  <div class="settings-hdr">PARENT CONTROLS</div>
-  <div class="settings-row"><label>Reset all data</label><button class="reset-btn" onclick="if(confirm('Reset everything?')){localStorage.clear();location.reload()}">Reset</button></div>
+  <button class="settings-close" onclick="toggleSettings()">✕</button>
+  <div class="settings-hdr">Voice</div>
+  <div class="settings-row"><label>AI Voice (TTS)</label><button class="tog on" id="tog-tts" onclick="togTTS(this)"></button></div>
+  <div class="settings-row"><label>Voice Input (Mic)</label><button class="tog on" id="tog-stt" onclick="togSTT(this)"></button></div>
+  <div class="settings-hdr">Stats</div>
+  <div class="settings-row"><label>Total XP</label><span class="stat-val" id="stat-xp">0</span></div>
+  <div class="settings-row"><label>Questions Answered</label><span class="stat-val" id="stat-q">0</span></div>
+  <div class="settings-row"><label>Best Streak</label><span class="stat-val" id="stat-streak">0</span></div>
+  <div class="settings-hdr">Danger Zone</div>
+  <button class="reset-btn" onclick="if(confirm('Reset ALL progress?')){localStorage.removeItem('qt3');location.reload()}">Reset All Progress</button>
 </div>
 
 <script>
-// ======== BACKGROUND PARTICLES ========
-const cvs=document.getElementById('bg-canvas'),ctx=cvs.getContext('2d');
-let stars=[];
-function resizeCvs(){cvs.width=innerWidth;cvs.height=innerHeight;stars=[];for(let i=0;i<60;i++)stars.push({x:Math.random()*cvs.width,y:Math.random()*cvs.height,r:Math.random()*1.5+.5,s:Math.random()*.3+.1,a:Math.random()})}
-resizeCvs();addEventListener('resize',resizeCvs);
-function drawStars(){ctx.clearRect(0,0,cvs.width,cvs.height);stars.forEach(s=>{s.a+=s.s*.02;const a=.2+Math.abs(Math.sin(s.a))*.6;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${a})`;ctx.fill()});requestAnimationFrame(drawStars)}
-drawStars();
-
-// ======== AUDIO ========
-const AC=window.AudioContext||window.webkitAudioContext;let ac;
-function ea(){if(!ac)ac=new AC()}
-function tone(f,d,t='square',v=.1){ea();const o=ac.createOscillator(),g=ac.createGain();o.type=t;o.frequency.value=f;g.gain.value=v;g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}
-function sfxOk(){tone(523,.08);setTimeout(()=>tone(659,.08),80);setTimeout(()=>tone(784,.12),160)}
-function sfxBad(){tone(200,.12,'sawtooth',.07);setTimeout(()=>tone(150,.15,'sawtooth',.07),120)}
-function sfxLvl(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,.12,'square',.09),i*100))}
-function sfxMsg(){tone(600,.03,'sine',.05)}
-function sfxCoin(){tone(1200,.05,'sine',.07);setTimeout(()=>tone(1600,.05,'sine',.07),50)}
-function sfxChest(){[400,500,600,800,1000,1200].forEach((f,i)=>setTimeout(()=>tone(f,.08,'sine',.06),i*60))}
-
-// ======== STATE ========
+// ========== STATE ==========
+const SAVE='qt3';
 let cfg={provider:'anthropic',key:'',name:'',char:'explorer',tts:true,stt:true};
-let gs={xp:0,lv:1,coins:0,gems:0,streak:0,best:0,total:0,correct:0,subject:'free',pets:['⛏️'],activePet:'⛏️',achs:[],dailyCorrect:0,chestsEarned:0};
+let gs={lv:1,xp:0,coins:50,gems:0,streak:0,bestStreak:0,totalXP:0,totalQ:0,correct:0,subject:'math',pets:['pick'],activePet:'pick',achs:[],chestProgress:0};
 
-try{const s=JSON.parse(localStorage.getItem('qt2'));if(s){Object.assign(cfg,s.c||{});Object.assign(gs,s.g||{})}}catch(e){}
-function save(){try{localStorage.setItem('qt2',JSON.stringify({c:cfg,g:gs}))}catch(e){}}
+function save(){localStorage.setItem(SAVE,JSON.stringify({cfg,gs}))}
+function load(){try{const d=JSON.parse(localStorage.getItem(SAVE));if(d){Object.assign(cfg,d.cfg);Object.assign(gs,d.gs)}}catch(e){}}
+load();
 
-if(cfg.key&&cfg.name){document.getElementById('setup').classList.remove('active');document.getElementById('main').classList.add('active');setTimeout(init,100)}
+// ========== SETUP ==========
+if(cfg.key){document.getElementById('setup').classList.add('gone');document.getElementById('app').classList.add('on');setTimeout(init,100)}
+document.getElementById('f-key').value=cfg.key;
+document.getElementById('f-name').value=cfg.name;
+if(cfg.provider!=='anthropic'){document.querySelectorAll('.s-pill').forEach(p=>{p.classList.toggle('on',p.dataset.p===cfg.provider)})}
+if(cfg.char!=='explorer'){document.querySelectorAll('.s-char').forEach(c=>{c.classList.toggle('on',c.dataset.c===cfg.char)})}
 
-// ======== SETUP ========
-function pickPill(el,type){
-  el.parentElement.querySelectorAll('.pill').forEach(p=>p.classList.remove('on'));
-  el.classList.add('on');
-  if(type==='provider')cfg.provider=el.dataset.p;
-  if(type==='char')cfg.char=el.dataset.p;
+function sPill(el,key){el.parentElement.querySelectorAll('.s-pill').forEach(p=>p.classList.remove('on'));el.classList.add('on');cfg[key]=el.dataset.p}
+function sChar(el){document.querySelectorAll('.s-char').forEach(c=>c.classList.remove('on'));el.classList.add('on');cfg.char=el.dataset.c}
+
+function startApp(){
+  cfg.key=document.getElementById('f-key').value.trim();
+  cfg.name=document.getElementById('f-name').value.trim()||'Adventurer';
+  if(!cfg.key){alert('Please enter an API key!');return}
+  save();
+  document.getElementById('setup').classList.add('gone');
+  document.getElementById('app').classList.add('on');
+  setTimeout(init,100);
 }
 
-function launch(){
-  const k=document.getElementById('f-key').value.trim();
-  const n=document.getElementById('f-name').value.trim();
-  if(!k){alert('Please enter your API key');return}
-  if(!n){alert("Please enter your child's name");return}
-  cfg.key=k;cfg.name=n;save();
-  document.getElementById('setup').classList.remove('active');
-  const m=document.getElementById('main');m.classList.add('active','screen-enter');
-  init();
-}
-
-// ======== PETS ========
-const PETS=[
-  {id:'⛏️',name:'Pickaxe',cost:0,fact:'Every adventurer starts here!'},
-  {id:'🐶',name:'Scout',cost:0,fact:'Dogs can smell 10,000 times better than humans!'},
-  {id:'🐱',name:'Whiskers',cost:30,fact:'Cats sleep 12-16 hours a day!'},
-  {id:'🐸',name:'Hopper',cost:50,fact:'Frogs can jump 20x their body length!'},
-  {id:'🐢',name:'Shell',cost:60,fact:'Sea turtles can live over 100 years!'},
-  {id:'🦊',name:'Blaze',cost:80,fact:'Foxes can hear mice underground!'},
-  {id:'🐙',name:'Inky',cost:100,fact:'Octopuses have 3 hearts and blue blood!'},
-  {id:'🦁',name:'Roar',cost:120,fact:'A lion\'s roar can be heard 5 miles away!'},
-  {id:'🦈',name:'Finn',cost:150,fact:'Sharks have been around longer than trees!'},
-  {id:'🦕',name:'Thunder',cost:180,fact:'Brachiosaurus was as tall as a 4-story building!'},
-  {id:'🐉',name:'Ember',cost:220,fact:'You tamed a dragon! Legendary!'},
-  {id:'🦖',name:'Rex',cost:260,fact:'T-Rex had teeth as big as bananas!'},
-  {id:'🐺',name:'Shadow',cost:300,fact:'Wolves can run 40 mph!'},
-  {id:'🦅',name:'Storm',cost:350,fact:'Eagles can see 8x better than humans!'},
-  {id:'🌟',name:'Nova',cost:500,fact:'Stars are made of super hot gas!'},
-  {id:'🚀',name:'Rocket',cost:750,fact:'You reached space! Ultimate explorer!'},
-];
-
-function renderPets(){
-  const g=document.getElementById('pet-grid');
-  g.innerHTML=PETS.map(p=>{
-    const owned=gs.pets.includes(p.id);
-    const active=gs.activePet===p.id;
-    return`<div class="pet-card ${owned?'unlocked':''} ${active?'active':''} ${!owned?'locked':''}" onclick="petTap('${p.id}')">
-      ${!owned?'<div class="pet-lock">🔒</div>':''}
-      <span class="pet-emoji">${p.id}</span>
-      <div class="pet-name">${p.name}</div>
-      <div class="pet-cost">${owned?(active?'⭐ ACTIVE':'✅ Owned'):p.cost+' 💰'}</div>
-    </div>`;
-  }).join('');
-}
-
-function petTap(id){
-  const p=PETS.find(x=>x.id===id);if(!p)return;
-  if(gs.pets.includes(id)){
-    gs.activePet=id;sfxMsg();save();renderPets();updateHUD();return;
+// ========== BACKGROUND STARS ==========
+(function(){
+  const bg=document.getElementById('bg');
+  for(let i=0;i<60;i++){
+    const s=document.createElement('div');s.className='star';
+    const sz=Math.random()*3+1;
+    s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${Math.random()*3+2}s;animation-delay:${Math.random()*3}s`;
+    bg.appendChild(s);
   }
-  if(gs.coins>=p.cost){
-    gs.coins-=p.cost;gs.pets.push(id);gs.activePet=id;
-    sfxChest();save();renderPets();updateHUD();
-    showPetUnlock(p);
-    checkAch();
+})();
+
+// ========== CHARACTERS ==========
+const chars={
+  explorer:{name:'Captain Quest',emoji:'🧭',happy:'🥳',sad:'😅',style:'an adventurous explorer who frames everything as exciting expeditions and treasure hunts. Super enthusiastic, uses lots of adventure metaphors.'},
+  gamer:{name:'Pixel',emoji:'🎮',happy:'🤩',sad:'😬',style:'a fun gaming buddy who talks like a friendly Minecraft/gaming YouTuber. Frames learning as leveling up, unlocking achievements, and boss battles.'},
+  scientist:{name:'Dr. Spark',emoji:'🔬',happy:'🤯',sad:'🧐',style:'a quirky, super-enthusiastic scientist who frames everything as amazing experiments and mind-blowing discoveries.'}
+};
+
+// ========== AUDIO ==========
+const actx=new(window.AudioContext||window.webkitAudioContext)();
+function playSound(type){
+  try{actx.resume();const o=actx.createOscillator(),g=actx.createGain();o.connect(g);g.connect(actx.destination);
+  const t=actx.currentTime;g.gain.setValueAtTime(.15,t);
+  if(type==='correct'){o.frequency.setValueAtTime(523,t);o.frequency.setValueAtTime(659,t+.08);o.frequency.setValueAtTime(784,t+.16);g.gain.exponentialRampToValueAtTime(.001,t+.4);o.start(t);o.stop(t+.4)}
+  else if(type==='wrong'){o.frequency.setValueAtTime(200,t);o.type='sawtooth';g.gain.exponentialRampToValueAtTime(.001,t+.3);o.start(t);o.stop(t+.3)}
+  else if(type==='levelup'){o.frequency.setValueAtTime(523,t);o.frequency.setValueAtTime(659,t+.1);o.frequency.setValueAtTime(784,t+.2);o.frequency.setValueAtTime(1047,t+.3);g.gain.exponentialRampToValueAtTime(.001,t+.6);o.start(t);o.stop(t+.6)}
+  else if(type==='coin'){o.frequency.setValueAtTime(1200,t);o.frequency.setValueAtTime(1600,t+.06);g.gain.exponentialRampToValueAtTime(.001,t+.15);o.start(t);o.stop(t+.15)}
+  else if(type==='chest'){o.frequency.setValueAtTime(440,t);o.frequency.setValueAtTime(554,t+.12);o.frequency.setValueAtTime(659,t+.24);o.frequency.setValueAtTime(880,t+.36);g.gain.exponentialRampToValueAtTime(.001,t+.7);o.start(t);o.stop(t+.7)}
+  }catch(e){}
+}
+
+// ========== TTS ==========
+let ttsAudio=null;
+async function speak(text){
+  if(!cfg.tts)return;
+  const clean=text.replace(/[\u{1F000}-\u{1FFFF}]/gu,'').replace(/\[.*?\]/g,'').replace(/[*_#`]/g,'').trim();
+  if(!clean)return;
+  // Try OpenAI TTS first (sounds great)
+  if(cfg.provider==='openai'||cfg.provider==='anthropic'){
+    // Use browser TTS as fallback but with better voice selection
+    if(ttsAudio){ttsAudio.pause();ttsAudio=null}
+    const u=new SpeechSynthesisUtterance(clean);
+    u.rate=0.95;u.pitch=1.15;u.volume=1;
+    const voices=speechSynthesis.getVoices();
+    const pick=voices.find(v=>v.name.includes('Samantha'))||voices.find(v=>v.name.includes('Karen'))||voices.find(v=>v.name.includes('Google')&&v.lang.startsWith('en'))||voices.find(v=>v.lang.startsWith('en'));
+    if(pick)u.voice=pick;
+    speechSynthesis.cancel();speechSynthesis.speak(u);
   }
 }
+speechSynthesis.onvoiceschanged=()=>{};
 
-function showPetUnlock(p){
-  document.getElementById('ov-pet-emoji').textContent=p.id;
-  document.getElementById('ov-pet-title').textContent=p.name+' UNLOCKED!';
-  document.getElementById('ov-pet-desc').textContent=p.fact;
-  document.getElementById('ov-pet').classList.add('show');
-  confettiBurst();
+// ========== STT ==========
+let rec,listening=false;
+function initRec(){
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window))return;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  rec=new SR();rec.continuous=false;rec.interimResults=false;rec.lang='en-US';
+  rec.onresult=e=>{const t=e.results[0][0].transcript;document.getElementById('inp').value=t;stopRec();send()};
+  rec.onend=()=>stopRec();rec.onerror=()=>stopRec();
 }
-
-// ======== ACHIEVEMENTS ========
-const ACHS=[
-  {id:'first',name:'First Steps',desc:'Answer your first question',icon:'👣',check:()=>gs.correct>=1},
-  {id:'streak3',name:'On Fire!',desc:'Get 3 in a row',icon:'🔥',check:()=>gs.best>=3},
-  {id:'streak5',name:'Unstoppable',desc:'Get 5 in a row',icon:'⚡',check:()=>gs.best>=5},
-  {id:'streak10',name:'LEGENDARY',desc:'Get 10 in a row!',icon:'🌟',check:()=>gs.best>=10},
-  {id:'q10',name:'Getting Started',desc:'Answer 10 questions',icon:'📝',check:()=>gs.total>=10},
-  {id:'q50',name:'Scholar',desc:'Answer 50 questions',icon:'📚',check:()=>gs.total>=50},
-  {id:'q100',name:'Brain Power',desc:'Answer 100 questions',icon:'🧠',check:()=>gs.total>=100},
-  {id:'c50',name:'Coin Collector',desc:'Earn 50 coins',icon:'💰',check:()=>gs.coins>=50||gs.total*5>=50},
-  {id:'pet3',name:'Pet Lover',desc:'Collect 3 pets',icon:'🐾',check:()=>gs.pets.length>=3},
-  {id:'pet5',name:'Zookeeper',desc:'Collect 5 pets',icon:'🦁',check:()=>gs.pets.length>=5},
-  {id:'lv3',name:'Rising Star',desc:'Reach Level 3',icon:'⭐',check:()=>gs.lv>=3},
-  {id:'lv5',name:'Superstar',desc:'Reach Level 5',icon:'🌟',check:()=>gs.lv>=5},
-  {id:'lv10',name:'Master',desc:'Reach Level 10',icon:'👑',check:()=>gs.lv>=10},
-  {id:'chest3',name:'Treasure Hunter',desc:'Open 3 treasure chests',icon:'🎁',check:()=>gs.chestsEarned>=3},
-  {id:'daily10',name:'Daily Champion',desc:'Get 10 correct in one session',icon:'🏆',check:()=>gs.dailyCorrect>=10},
-];
-
-function renderAchs(){
-  const g=document.getElementById('ach-grid');
-  g.innerHTML=ACHS.map(a=>{
-    const earned=gs.achs.includes(a.id);
-    return`<div class="ach-card ${earned?'earned':''}">
-      <div class="ach-icon">${a.icon}</div>
-      <div class="ach-info"><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div>
-      ${earned?'<div class="ach-badge">✅</div>':''}
-    </div>`;
-  }).join('');
+function toggleMic(){
+  if(!rec)initRec();if(!rec){alert('Speech not available');return}
+  if(listening){rec.stop();stopRec()}
+  else{try{rec.start();listening=true;document.getElementById('mic').classList.add('listening');document.getElementById('mic').textContent='🔴'}catch(e){}}
 }
+function stopRec(){listening=false;const b=document.getElementById('mic');b.classList.remove('listening');b.textContent='🎤'}
 
-function checkAch(){
-  ACHS.forEach(a=>{
-    if(!gs.achs.includes(a.id)&&a.check()){
-      gs.achs.push(a.id);save();
-      document.getElementById('ov-ach-emoji').textContent=a.icon;
-      document.getElementById('ov-ach-title').textContent=a.name+'!';
-      document.getElementById('ov-ach-desc').textContent=a.desc;
-      setTimeout(()=>{document.getElementById('ov-ach').classList.add('show');sfxLvl();confettiBurst()},600);
-    }
-  });
-  renderAchs();
+// ========== HUD ==========
+function updateHUD(){
+  const c=chars[cfg.char];
+  document.getElementById('hud-avatar').textContent=c.emoji;
+  document.getElementById('hud-lv').textContent=`LV ${gs.lv}`;
+  const xpNeeded=gs.lv*60;
+  document.getElementById('xp-fill').style.width=Math.min(100,gs.xp/xpNeeded*100)+'%';
+  document.getElementById('hud-streak').textContent=gs.streak;
+  document.getElementById('hud-coins').textContent=gs.coins;
+  document.getElementById('hud-gems').textContent=gs.gems;
+  document.getElementById('char-display').textContent=c.emoji;
+  // Stats
+  document.getElementById('stat-xp').textContent=gs.totalXP;
+  document.getElementById('stat-q').textContent=gs.totalQ;
+  document.getElementById('stat-streak').textContent=gs.bestStreak;
+  save();
 }
-
-// ======== TREASURE CHESTS ========
-const CHEST_REWARDS=[
-  {type:'coins',amount:15,text:'+15 Coins! 💰',emoji:'💰'},
-  {type:'coins',amount:25,text:'+25 Coins! 💰',emoji:'💰'},
-  {type:'coins',amount:40,text:'+40 Coins! 💰💰',emoji:'💰'},
-  {type:'gems',amount:3,text:'+3 Gems! 💎',emoji:'💎'},
-  {type:'gems',amount:5,text:'+5 Gems! 💎',emoji:'💎'},
-  {type:'xp',amount:30,text:'+30 Bonus XP! ⚡',emoji:'⚡'},
-  {type:'xp',amount:50,text:'+50 Bonus XP! 🌟',emoji:'🌟'},
-];
-
-let pendingChest=null;
-
-function triggerChest(){
-  pendingChest=CHEST_REWARDS[Math.floor(Math.random()*CHEST_REWARDS.length)];
-  document.getElementById('chest-icon').textContent='🎁';
-  document.getElementById('chest-icon').style.display='';
-  document.getElementById('chest-result').style.display='none';
-  document.getElementById('chest-dismiss').style.display='none';
-  document.getElementById('ov-chest').classList.add('show');
-  sfxChest();
-}
-
-function openChest(){
-  if(!pendingChest)return;
-  const r=pendingChest;
-  document.getElementById('chest-icon').textContent=r.emoji;
-  document.getElementById('chest-icon').style.fontSize='80px';
-  document.getElementById('chest-result').textContent=r.text;
-  document.getElementById('chest-result').style.display='';
-  document.getElementById('chest-dismiss').style.display='';
-
-  if(r.type==='coins'){gs.coins+=r.amount;sfxCoin()}
-  else if(r.type==='gems'){gs.gems+=r.amount;sfxCoin()}
-  else if(r.type==='xp'){addXP(r.amount)}
-
-  gs.chestsEarned++;
-  save();updateHUD();confettiBurst();
-  pendingChest=null;
-}
-
-// ======== XP & LEVELS ========
-function xpFor(lv){return 40+lv*25}
 
 function addXP(n){
-  gs.xp+=n;
-  while(gs.xp>=xpFor(gs.lv)){
-    gs.xp-=xpFor(gs.lv);gs.lv++;
-    sfxLvl();
-    setTimeout(()=>{
-      document.getElementById('ov-lv-text').textContent=`LEVEL ${gs.lv}!`;
-      document.getElementById('ov-levelup').classList.add('show');
-      confettiBurst();
-    },400);
-    // Bonus gem every level
-    gs.gems+=2;
-  }
-  save();updateHUD();
+  gs.xp+=n;gs.totalXP+=n;
+  const need=gs.lv*60;
+  if(gs.xp>=need){gs.xp-=need;gs.lv++;playSound('levelup');showOverlay('⬆️',`LEVEL ${gs.lv}!`,`You reached Level ${gs.lv}!`);spawnConfetti();checkAch('lv',gs.lv)}
+  floatXP(n);updateHUD();
 }
 
-function handleCorrect(){
-  sfxOk();
-  gs.streak++;gs.correct++;gs.total++;gs.dailyCorrect++;
-  if(gs.streak>gs.best)gs.best=gs.streak;
+function addCoins(n){gs.coins+=n;playSound('coin');updateHUD()}
+function addGems(n){gs.gems+=n;updateHUD()}
 
-  const base=10;const combo=Math.min(gs.streak-1,7)*3;
-  const earned=base+combo;
-  addXP(earned);
-  gs.coins+=5;
-  save();updateHUD();
-
-  showXP(earned);
-
-  // Treasure chest every 8 correct
-  if(gs.correct%8===0)setTimeout(triggerChest,1200);
-
-  checkAch();
-}
-
-function handleWrong(){
-  sfxBad();gs.streak=0;gs.total++;save();updateHUD();
-}
-
-function showXP(n){
+function floatXP(n){
   const el=document.createElement('div');el.className='xp-fly';el.textContent=`+${n} XP`;
-  el.style.left=(innerWidth/2-40)+'px';el.style.top='45%';
-  document.body.appendChild(el);setTimeout(()=>el.remove(),1300);
+  el.style.left=Math.random()*60+20+'%';el.style.top='40%';
+  document.body.appendChild(el);setTimeout(()=>el.remove(),1500);
 }
 
-// ======== CONFETTI ========
-function confettiBurst(){
-  const colors=['#22c55e','#fbbf24','#38bdf8','#ef4444','#a855f7','#ec4899','#f97316'];
+// ========== CONFETTI ==========
+function spawnConfetti(){
+  const colors=['#fbbf24','#22c55e','#38bdf8','#a855f7','#f472b6','#ef4444','#f97316'];
   for(let i=0;i<35;i++){
-    const p=document.createElement('div');p.className='confetti-piece';
-    p.style.left=Math.random()*100+'vw';p.style.top='40vh';
-    p.style.background=colors[Math.floor(Math.random()*colors.length)];
-    p.style.borderRadius=Math.random()>.5?'50%':'2px';
-    p.style.width=(6+Math.random()*8)+'px';p.style.height=(6+Math.random()*8)+'px';
-    p.style.setProperty('--dx',(Math.random()*200-100)+'px');
-    p.style.setProperty('--dy',(Math.random()*300+100)+'px');
-    p.style.setProperty('--rot',(Math.random()*1080)+'deg');
-    p.style.setProperty('--dur',(0.8+Math.random()*0.8)+'s');
-    document.body.appendChild(p);setTimeout(()=>p.remove(),2000);
+    const c=document.createElement('div');c.className='confetti-piece';
+    c.style.cssText=`left:${Math.random()*100}%;top:-10px;background:${colors[i%colors.length]};--dx:${(Math.random()-.5)*200}px;--dy:${Math.random()*600+300}px;--rot:${Math.random()*720}deg;--dur:${Math.random()*1.5+1}s;border-radius:${Math.random()>.5?'50%':'2px'}`;
+    document.body.appendChild(c);setTimeout(()=>c.remove(),3000);
   }
 }
 
-// ======== UI ========
-function updateHUD(){
-  document.getElementById('hud-avatar').textContent=gs.activePet;
-  document.getElementById('hud-lv').textContent='LV '+gs.lv;
-  document.getElementById('xp-fill').style.width=(gs.xp/xpFor(gs.lv)*100)+'%';
-  document.getElementById('hud-streak').textContent='🔥'+gs.streak;
-  document.getElementById('hud-coins').textContent='💰'+gs.coins;
-  document.getElementById('hud-gems').textContent='💎'+gs.gems;
-
-  document.getElementById('s-total').textContent=gs.total;
-  document.getElementById('s-correct').textContent=gs.correct;
-  document.getElementById('s-streak').textContent=gs.best;
-  document.getElementById('s-pets').textContent=gs.pets.length;
+// ========== OVERLAY ==========
+function showOverlay(emoji,title,sub){
+  document.getElementById('ov-emoji').textContent=emoji;
+  document.getElementById('ov-title').textContent=title;
+  document.getElementById('ov-sub').textContent=sub;
+  document.getElementById('overlay').classList.add('show');
 }
+function dismissOverlay(){document.getElementById('overlay').classList.remove('show')}
 
-function closeOv(id){document.getElementById(id).classList.remove('show')}
-function openSettings(){document.getElementById('settings').classList.add('show');updateHUD()}
-function closeSettings(){document.getElementById('settings').classList.remove('show')}
-
-function pickSubject(el){
-  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('on'));
-  el.classList.add('on');
-  gs.subject=el.dataset.s;save();
-
-  // Switch to chat page
-  pickPage(document.querySelector('[data-pg="chat"]'));
-
-  // Reset conversation for new subject
+// ========== SUBJECTS ==========
+function switchSubject(el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');gs.subject=el.dataset.s;save();
+  pickPage(document.querySelector('[data-pg="learn"]'));
   history=[];
-  document.getElementById('chat').innerHTML='';document.getElementById('qr').innerHTML='';
   const names={free:'Free Talk',math:'Math',reading:'Reading',science:'Science',creative:'Creative Mode'};
-  addMsg('sys',`Switched to ${names[gs.subject]}`);
-  history.push({r:'user',t:`Hi! Let's do ${names[gs.subject]}! Give me something fun to start with.`});
+  setBubble(`Switching to ${names[gs.subject]}! Let's go! 🚀`);
+  // Show/hide free input bar vs answer buttons
+  const isFree=gs.subject==='free'||gs.subject==='creative';
+  document.getElementById('free-bar').classList.toggle('on',isFree);
+  document.getElementById('answers').style.display=isFree?'none':'flex';
+  history.push({r:'user',t:`Let's do ${names[gs.subject]}! Give me a fun question with 3-4 answer choices.`});
   getAI();
 }
 
+// ========== PAGES ==========
 function pickPage(el){
-  document.querySelectorAll('.bb-btn').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.bn-btn').forEach(b=>b.classList.remove('on'));
   el.classList.add('on');
   const pg=el.dataset.pg;
-  ['chat','pets','ach'].forEach(p=>{
-    document.getElementById('page-'+p).style.display=p===pg?'flex':'none';
-  });
+  ['learn','pets','ach'].forEach(p=>document.getElementById('page-'+p).classList.toggle('on',p===pg));
   if(pg==='pets')renderPets();
   if(pg==='ach')renderAchs();
 }
 
-// ======== CHAT ========
+// ========== CHAT / AI ==========
 let history=[];
 let busy=false;
-
-const chars={
-  explorer:{name:'Captain Quest',emoji:'🧭',style:'an adventurous explorer who frames everything as exciting expeditions and treasure hunts. Uses adventure metaphors constantly.'},
-  gamer:{name:'Pixel',emoji:'🎮',style:'a fun gaming buddy who talks like a friendly Minecraft/gaming YouTuber. Frames learning as leveling up, unlocking achievements, and boss battles.'},
-  scientist:{name:'Dr. Spark',emoji:'🔬',style:'a quirky, super-enthusiastic scientist who frames everything as amazing experiments and discoveries.'},
-};
 
 function sysPrompt(){
   const c=chars[cfg.char];
   let subj='';
-  if(gs.subject==='math')subj=`
-FOCUS: 1st Grade Math (Common Core aligned)
-Skills: Addition/subtraction within 20, place value (tens/ones), comparing numbers, word problems, counting by 2s/5s/10s, shapes, telling time.
-METHOD: Embed math in stories about Minecraft, animals, and adventures. Use emoji blocks for counting (🟩🟩🟩). Move concrete→pictorial→abstract. Make word problems about creepers, Mr Beast challenges, or animal facts.`;
-  else if(gs.subject==='reading')subj=`
-FOCUS: 1st Grade Reading & Phonics
-Skills: CVC words, CVCe (magic E), digraphs (sh/ch/th/wh), blends, sight words, rhyming, syllable counting, simple comprehension.
-METHOD: Build words like Minecraft crafting — sound by sound. Read micro-stories about animals/adventures. Practice sight words in silly sentences. Make phonics feel like code-breaking.`;
-  else if(gs.subject==='science')subj=`
-FOCUS: 1st Grade Science & Nature
-Topics: Animals (habitats, lifecycles, fun facts), weather, plants, senses, space basics, dinosaurs, ocean life.
-METHOD: Be a nature documentary host! Blow their mind with "did you know?" facts. Compare real animals to Minecraft mobs. Ask what animals they like and go deep.`;
-  else if(gs.subject==='creative')subj=`
-FOCUS: Creative Thinking & Imagination
-Activities: Collaborative storytelling, "what would you build?" prompts, invention ideas, silly scenarios, game design thinking.
-METHOD: Let the child lead. Build on their ideas with excitement. No wrong answers. Ask "and then what happens?"`;
-  else subj=`MODE: Free talk. Follow their curiosity. Gently weave in learning when natural.`;
+  if(gs.subject==='math')subj=`\nFOCUS: 1st Grade Math (Common Core)\nSkills: Addition/subtraction within 20, place value, comparing numbers, word problems, counting by 2s/5s/10s, shapes, time.\nMETHOD: Embed math in stories about Minecraft, animals, adventures. Use emoji for counting. Make word problems about creepers, Mr Beast, or animal facts.`;
+  else if(gs.subject==='reading')subj=`\nFOCUS: 1st Grade Reading & Phonics\nSkills: CVC words, CVCe (magic E), digraphs, blends, sight words, rhyming, syllable counting, comprehension.\nMETHOD: Build words like Minecraft crafting. Practice sight words in silly sentences.`;
+  else if(gs.subject==='science')subj=`\nFOCUS: 1st Grade Science\nTopics: Animals, habitats, weather, plants, space, dinosaurs, ocean.\nMETHOD: Frame as expeditions and discoveries.`;
+  else if(gs.subject==='creative')subj=`\nFOCUS: Creative Mode - storytelling, drawing prompts, building ideas, imagination.\nMETHOD: Free-form creativity.`;
 
-  return `You are ${c.name} ${c.emoji}, a personal AI tutor for a 6-year-old 1st grader named ${cfg.name}. You are ${c.style}.
-
-CRITICAL RULES FOR ENGAGING A 6-YEAR-OLD:
-1. MAX 2-3 short sentences per message. Their attention span is tiny. NEVER write long paragraphs.
-2. Use simple words. If you use a big word, explain it immediately in parentheses.
-3. Be WILDLY enthusiastic for correct answers. Use caps, emoji, and excitement. Every right answer is EPIC.
-4. NEVER say "wrong" or "incorrect." Instead: "Hmm almost! Let's try together..." or "Ooh so close! What if we count again?"
-5. Ask ONE question at a time. Never stack questions.
-6. Use LOTS of emoji — they make text visual and fun for a kid.
-7. Reference: Minecraft, Mr. Beast, animals, building, gaming, YouTube.
-8. Every 5-6 exchanges, throw in a brain break: a joke, wild animal fact, or silly question.
-9. For answer choices, format as: A) answer  B) answer  C) answer (one per line).
-10. IMPORTANT SIGNALS (the game reward system reads these):
-    - When ${cfg.name} answers correctly, include [CORRECT] in your response.
-    - When they answer incorrectly, include [TRY_AGAIN] instead.
-    - These tags are hidden from the child — just include them naturally.
-11. Start each new subject with an exciting hook, not a boring introduction.
-12. If they go off topic, gently redirect with something fun related to the topic.
-13. Celebrate streaks: "That's 3 in a row! You're ON FIRE! 🔥🔥🔥"
-14. Pet system: ${cfg.name} has a pet companion named ${PETS.find(p=>p.id===gs.activePet)?.name||'Pickaxe'}. Mention the pet occasionally in fun ways.
-
+  return `You are ${c.name} ${c.emoji}, ${c.style}
+You're tutoring ${cfg.name}, a 6-year-old 1st grader who loves Minecraft, Mr Beast, gaming, and animals.
 ${subj}
 
-GAME STATE: Level ${gs.lv} | Streak ${gs.streak} | ${gs.correct} correct total`;
+CRITICAL RESPONSE FORMAT:
+${gs.subject==='free'||gs.subject==='creative'?
+`- Have a fun, engaging conversation. Be enthusiastic!
+- Keep responses SHORT (2-3 sentences max).
+- Ask follow-up questions to keep the conversation going.`
+:
+`- Ask ONE question at a time.
+- Provide 3-4 answer choices labeled A), B), C), D).
+- Keep the question SHORT and fun (1-2 sentences).
+- After the choices, add a blank line then write the correct answer as: ANSWER: X (where X is A, B, C, or D)
+- ALWAYS include ANSWER: at the end.
+- Use emojis generously.
+- Frame questions as adventures, missions, or challenges.
+- Mix easy wins (70%) with stretch challenges (30%).`}
+
+PERSONALITY RULES:
+- NEVER be boring or lecture-y.
+- Be WILDLY enthusiastic. Every question is the most exciting thing ever.
+- Use Minecraft/gaming references when possible.
+- Keep it SHORT — ${cfg.name} is 6 and has a short attention span.
+- Celebrate effort, not just correctness.
+- Current streak: ${gs.streak} (if >3, mention it excitedly!)
+- Active pet companion: ${gs.activePet}`;
 }
 
 async function callAPI(msgs){
-  if(!msgs||msgs.length===0){msgs=[{r:'user',t:'Hi! Let\'s learn something fun!'}];}
+  if(!msgs||msgs.length===0)msgs=[{r:'user',t:'Hi! Give me a fun question!'}];
   try{
     if(cfg.provider==='anthropic'){
       const r=await fetch('https://api.anthropic.com/v1/messages',{
         method:'POST',headers:{'Content-Type':'application/json','x-api-key':cfg.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-        body:JSON.stringify({model:'claude-sonnet-4-5-20250929',max_tokens:250,system:sysPrompt(),messages:msgs.map(m=>({role:m.r==='bot'?'assistant':'user',content:m.t}))})
+        body:JSON.stringify({model:'claude-sonnet-4-5-20250929',max_tokens:300,system:sysPrompt(),messages:msgs.map(m=>({role:m.r==='bot'?'assistant':'user',content:m.t}))})
       });
       if(!r.ok)throw new Error(await r.text());
       return(await r.json()).content[0].text;
     }else if(cfg.provider==='openai'){
       const r=await fetch('https://api.openai.com/v1/chat/completions',{
         method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},
-        body:JSON.stringify({model:'gpt-4o-mini',max_tokens:250,messages:[{role:'system',content:sysPrompt()},...msgs.map(m=>({role:m.r==='bot'?'assistant':'user',content:m.t}))]})
+        body:JSON.stringify({model:'gpt-4o-mini',max_tokens:300,messages:[{role:'system',content:sysPrompt()},...msgs.map(m=>({role:m.r==='bot'?'assistant':'user',content:m.t}))]})
       });
       if(!r.ok)throw new Error(''+r.status);
       return(await r.json()).choices[0].message.content;
     }else{
       const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
         method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},
-        body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:250,messages:[{role:'system',content:sysPrompt()},...msgs.map(m=>({role:m.r==='bot'?'assistant':'user',content:m.t}))]})
+        body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:300,messages:[{role:'system',content:sysPrompt()},...msgs.map(m=>({role:m.r==='bot'?'assistant':'user',content:m.t}))]})
       });
       if(!r.ok)throw new Error(''+r.status);
       return(await r.json()).choices[0].message.content;
     }
-  }catch(e){console.error(e);return`Oops, little hiccup! 🤭 Try saying that again? (${e.message})`}
+  }catch(e){console.error(e);return`Oops, little hiccup! 🤭 Try again? (${e.message?.substring(0,80)})`}
 }
 
-function addMsg(role,text,noSpeak){
-  const chat=document.getElementById('chat');
-  const el=document.createElement('div');
-  el.className='msg '+role;
-  const clean=text.replace(/\[CORRECT\]/gi,'').replace(/\[TRY_AGAIN\]/gi,'').trim();
-
-  if(role==='bot'){
-    const c=chars[cfg.char];
-    el.innerHTML=`<div class="bot-name">${c.emoji} ${c.name}</div>${clean.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/([A-D]\))/g,'<br>$1')}`;
-  }else if(role==='sys'){
-    el.textContent=clean;
-  }else{
-    el.textContent=clean;
-  }
-
-  chat.appendChild(el);
-  chat.scrollTop=chat.scrollHeight;
-
-  if(role==='bot'){
-    sfxMsg();
-    if(!noSpeak)speak(clean);
-    if(text.match(/\[CORRECT\]/i))handleCorrect();
-    else if(text.match(/\[TRY_AGAIN\]/i))handleWrong();
-    extractQR(text);
-  }
+function setBubble(text,thinking){
+  const b=document.getElementById('bubble');
+  if(thinking){b.innerHTML='<div class="typing-dots"><span></span><span></span><span></span></div>';b.classList.add('thinking')}
+  else{b.textContent=text;b.classList.remove('thinking')}
 }
 
-function extractQR(text){
-  const wrap=document.getElementById('qr');wrap.innerHTML='';
-  const re=/([A-D])\)\s*([^\n\[]+)/g;const opts=[];let m;
-  while((m=re.exec(text))!==null)opts.push(m[2].trim().replace(/\[.*?\]/g,'').trim());
-  opts.forEach(o=>{
-    const b=document.createElement('button');b.className='qr';b.textContent=o;
-    b.onclick=()=>{wrap.innerHTML='';sendText(o)};
-    wrap.appendChild(b);
+function setCharMood(mood){
+  const c=chars[cfg.char];const el=document.getElementById('char-display');
+  el.textContent=mood==='happy'?c.happy:mood==='sad'?c.sad:c.emoji;
+  el.classList.remove('happy','sad');
+  void el.offsetWidth; // trigger reflow
+  el.classList.add(mood);
+  setTimeout(()=>{el.classList.remove(mood);el.textContent=c.emoji},1500);
+}
+
+function parseResponse(text){
+  // Extract answer choices and correct answer
+  const lines=text.split('\n').filter(l=>l.trim());
+  let question='';let choices=[];let correctLetter='';
+
+  for(const line of lines){
+    const ansMatch=line.match(/^ANSWER:\s*([A-D])/i);
+    if(ansMatch){correctLetter=ansMatch[1].toUpperCase();continue}
+    const choiceMatch=line.match(/^([A-D])\)\s*(.+)/i);
+    if(choiceMatch){choices.push({letter:choiceMatch[1].toUpperCase(),text:choiceMatch[2].trim()});continue}
+    if(choices.length===0)question+=(question?' ':'')+line;
+  }
+
+  return{question:question.trim(),choices,correctLetter};
+}
+
+function renderChoices(choices,correctLetter){
+  const div=document.getElementById('answers');
+  div.innerHTML='';div.style.display='flex';
+  document.getElementById('free-bar').classList.remove('on');
+
+  choices.forEach((ch,i)=>{
+    const btn=document.createElement('button');btn.className='ans-btn';
+    btn.innerHTML=`<span class="ans-letter">${ch.letter}</span><span>${ch.text}</span>`;
+    btn.onclick=()=>handleAnswer(ch.letter,correctLetter,btn);
+    div.appendChild(btn);
   });
 }
 
-function send(){
-  const inp=document.getElementById('inp');
-  const t=inp.value.trim();if(!t||busy)return;
-  inp.value='';sendText(t);
-}
-
-function sendText(t){
+function handleAnswer(picked,correct,btn){
   if(busy)return;
-  document.getElementById('qr').innerHTML='';
-  addMsg('user',t);
-  history.push({r:'user',t});
-  getAI();
+  busy=true;
+  gs.totalQ++;
+  const isCorrect=picked===correct;
+
+  document.querySelectorAll('.ans-btn').forEach(b=>b.style.pointerEvents='none');
+
+  if(isCorrect){
+    btn.classList.add('correct');
+    gs.streak++;gs.correct++;
+    if(gs.streak>gs.bestStreak)gs.bestStreak=gs.streak;
+    playSound('correct');
+    setCharMood('happy');
+    document.body.classList.add('flash-green');
+    setTimeout(()=>document.body.classList.remove('flash-green'),500);
+
+    const xp=10+(gs.streak>=5?5:0);
+    addXP(xp);
+    if(gs.streak%3===0)addCoins(5);
+
+    gs.chestProgress++;
+    if(gs.chestProgress>=8){gs.chestProgress=0;openChest()}
+
+    checkAch('streak',gs.streak);checkAch('correct',gs.correct);checkAch('q',gs.totalQ);
+
+    // Next question after delay
+    setTimeout(()=>{
+      history.push({r:'user',t:`I picked ${picked} and got it RIGHT! Give me another question!`});
+      getAI();
+    },1200);
+  }else{
+    btn.classList.add('wrong');
+    gs.streak=0;
+    playSound('wrong');
+    setCharMood('sad');
+    document.getElementById('app').classList.add('shake');
+    setTimeout(()=>document.getElementById('app').classList.remove('shake'),400);
+
+    // Show correct answer
+    document.querySelectorAll('.ans-btn').forEach(b=>{
+      const letter=b.querySelector('.ans-letter').textContent;
+      if(letter===correct)b.classList.add('correct');
+    });
+
+    setTimeout(()=>{
+      history.push({r:'user',t:`I picked ${picked} but the answer was ${correct}. Explain why briefly, then give me a new question!`});
+      getAI();
+    },2000);
+  }
+  updateHUD();save();
 }
 
 async function getAI(){
   busy=true;
-  document.getElementById('typing').classList.add('on');
-  const chat=document.getElementById('chat');
-  chat.scrollTop=chat.scrollHeight;
-
+  setBubble('',true);
   const resp=await callAPI(history);
-
-  document.getElementById('typing').classList.remove('on');
-  busy=false;
   history.push({r:'bot',t:resp});
-  addMsg('bot',resp);
-  if(history.length>30)history=history.slice(-24);
+  if(history.length>20)history=history.slice(-16);
+
+  const isFree=gs.subject==='free'||gs.subject==='creative';
+
+  if(isFree){
+    setBubble(resp);
+    document.getElementById('answers').style.display='none';
+    document.getElementById('free-bar').classList.add('on');
+    speak(resp);
+  }else{
+    const parsed=parseResponse(resp);
+    if(parsed.choices.length>=2){
+      setBubble(parsed.question||resp.split('\n')[0]);
+      renderChoices(parsed.choices,parsed.correctLetter);
+      speak(parsed.question||resp.split('\n')[0]);
+    }else{
+      // Fallback if parsing fails — show as text and retry
+      setBubble(resp);
+      document.getElementById('free-bar').classList.add('on');
+      document.getElementById('answers').style.display='none';
+      speak(resp);
+    }
+  }
+  busy=false;
 }
 
-// ======== TTS ========
-let utt;
-function speak(text){
-  if(!cfg.tts)return;
-  if(utt)speechSynthesis.cancel();
-  const clean=text.replace(/[\u{1F000}-\u{1FFFF}]/gu,'').replace(/[*_#`]/g,'').trim();
-  if(!clean)return;
-  utt=new SpeechSynthesisUtterance(clean);utt.rate=.92;utt.pitch=1.1;
-  const v=speechSynthesis.getVoices();
-  const pick=v.find(x=>x.name.includes('Samantha'))||v.find(x=>x.name.includes('Google')&&x.lang.startsWith('en'))||v.find(x=>x.lang.startsWith('en'));
-  if(pick)utt.voice=pick;
-  speechSynthesis.speak(utt);
-}
-speechSynthesis.onvoiceschanged=()=>{};
-
-// ======== STT ========
-let rec,listening=false;
-function initRec(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
-  rec=new SR();rec.continuous=false;rec.interimResults=true;rec.lang='en-US';
-  rec.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;document.getElementById('inp').value=t;if(e.results[e.results.length-1].isFinal){stopRec();send()}};
-  rec.onend=stopRec;rec.onerror=stopRec;
-}
-
-function toggleMic(){
-  if(!rec)initRec();if(!rec){alert('Speech not available');return}
-  if(listening){rec.stop();stopRec()}
-  else{try{rec.start();listening=true;const b=document.getElementById('mic');b.classList.add('listening');b.textContent='🔴'}catch(e){}}
-}
-function stopRec(){listening=false;const b=document.getElementById('mic');b.classList.remove('listening');b.textContent='🎤'}
-
-// ======== INIT ========
-function init(){
-  updateHUD();initRec();renderPets();renderAchs();
-  addMsg('sys',`${chars[cfg.char].emoji} ${chars[cfg.char].name} is ready!`);
-  history.push({r:'user',t:`Hi ${chars[cfg.char].name}! I'm ${cfg.name}. Let's have fun learning!`});
+// Free text send
+function send(){
+  const inp=document.getElementById('inp');
+  const t=inp.value.trim();if(!t||busy)return;
+  inp.value='';
+  history.push({r:'user',t});
   getAI();
 }
 
-// ======== PWA ========
+// ========== TREASURE CHEST ==========
+function openChest(){
+  playSound('chest');
+  const rewards=[
+    {emoji:'🪙',text:'50 Coins!',fn:()=>addCoins(50)},
+    {emoji:'💎',text:'3 Gems!',fn:()=>addGems(3)},
+    {emoji:'🪙',text:'25 Coins!',fn:()=>addCoins(25)},
+    {emoji:'💎',text:'1 Gem!',fn:()=>addGems(1)},
+    {emoji:'🪙',text:'100 Coins!',fn:()=>addCoins(100)},
+  ];
+  const r=rewards[Math.floor(Math.random()*rewards.length)];
+  r.fn();spawnConfetti();
+  showOverlay('🎁',`TREASURE CHEST!`,`You found ${r.text}`);
+}
+
+// ========== PETS ==========
+const petList=[
+  {id:'pick',emoji:'⛏️',name:'Pickaxe',cost:0,fact:'A trusty tool for any adventure!'},
+  {id:'dog',emoji:'🐕',name:'Buddy',cost:30,fact:'Dogs can learn over 100 words!'},
+  {id:'cat',emoji:'🐱',name:'Whiskers',cost:50,fact:'Cats sleep 12-16 hours a day!'},
+  {id:'dragon',emoji:'🐉',name:'Blaze',cost:80,fact:'Komodo dragons are the largest lizards!'},
+  {id:'fox',emoji:'🦊',name:'Rusty',cost:60,fact:'Foxes can hear mice underground!'},
+  {id:'owl',emoji:'🦉',name:'Hoot',cost:70,fact:'Owls can turn their heads 270°!'},
+  {id:'penguin',emoji:'🐧',name:'Waddles',cost:90,fact:'Penguins propose with pebbles!'},
+  {id:'parrot',emoji:'🦜',name:'Echo',cost:100,fact:'Parrots can live over 80 years!'},
+  {id:'wolf',emoji:'🐺',name:'Shadow',cost:120,fact:'Wolves can run 40mph!'},
+  {id:'dolphin',emoji:'🐬',name:'Splash',cost:150,fact:'Dolphins sleep with one eye open!'},
+  {id:'unicorn',emoji:'🦄',name:'Sparkle',cost:200,fact:'A magical companion of legend!'},
+  {id:'dino',emoji:'🦕',name:'Rex',cost:250,fact:'T-Rex had the strongest bite ever!'},
+  {id:'octopus',emoji:'🐙',name:'Inky',cost:180,fact:'Octopuses have 3 hearts!'},
+  {id:'bear',emoji:'🐻',name:'Honey',cost:160,fact:'Bears can smell food 20 miles away!'},
+  {id:'alien',emoji:'👾',name:'Zorb',cost:300,fact:'From a galaxy far, far away!'},
+  {id:'rocket',emoji:'🚀',name:'Rocket',cost:500,fact:'Rockets go 25,000 mph to orbit!'},
+];
+
+function renderPets(){
+  const g=document.getElementById('pet-grid');g.innerHTML='';
+  petList.forEach(p=>{
+    const unlocked=gs.pets.includes(p.id);
+    const active=gs.activePet===p.id;
+    const d=document.createElement('div');
+    d.className=`pet-card ${unlocked?'unlocked':'locked'} ${active?'active':''}`;
+    d.innerHTML=`<span class="pet-emoji">${p.emoji}</span><div class="pet-name">${p.name}</div><div class="pet-cost">${unlocked?(active?'✨ Active':'Owned'):'🪙 '+p.cost}</div>${!unlocked?'<span class="pet-lock">🔒</span>':''}`;
+    d.onclick=()=>{
+      if(unlocked){gs.activePet=p.id;save();renderPets();updateHUD()}
+      else if(gs.coins>=p.cost){gs.coins-=p.cost;gs.pets.push(p.id);gs.activePet=p.id;playSound('chest');spawnConfetti();showOverlay(p.emoji,`${p.name} Unlocked!`,p.fact);save();renderPets();updateHUD();checkAch('pets',gs.pets.length)}
+      else{alert(`Need ${p.cost-gs.coins} more coins!`)}
+    };
+    g.appendChild(d);
+  });
+}
+
+// ========== ACHIEVEMENTS ==========
+const achList=[
+  {id:'first',icon:'⭐',name:'First Steps',desc:'Answer your first question',check:(k,v)=>k==='q'&&v>=1},
+  {id:'streak3',icon:'🔥',name:'On Fire!',desc:'Get a 3 streak',check:(k,v)=>k==='streak'&&v>=3},
+  {id:'streak5',icon:'🔥',name:'BLAZING!',desc:'Get a 5 streak',check:(k,v)=>k==='streak'&&v>=5},
+  {id:'streak10',icon:'💥',name:'UNSTOPPABLE',desc:'Get a 10 streak',check:(k,v)=>k==='streak'&&v>=10},
+  {id:'q10',icon:'🧠',name:'Brain Power',desc:'Answer 10 questions',check:(k,v)=>k==='q'&&v>=10},
+  {id:'q50',icon:'🎯',name:'Sharpshooter',desc:'Answer 50 questions',check:(k,v)=>k==='q'&&v>=50},
+  {id:'q100',icon:'🏅',name:'Century Club',desc:'Answer 100 questions',check:(k,v)=>k==='q'&&v>=100},
+  {id:'lv5',icon:'⚔️',name:'Warrior',desc:'Reach Level 5',check:(k,v)=>k==='lv'&&v>=5},
+  {id:'lv10',icon:'👑',name:'Champion',desc:'Reach Level 10',check:(k,v)=>k==='lv'&&v>=10},
+  {id:'pets3',icon:'🐾',name:'Pet Collector',desc:'Unlock 3 pets',check:(k,v)=>k==='pets'&&v>=3},
+  {id:'pets8',icon:'🌟',name:'Pet Master',desc:'Unlock 8 pets',check:(k,v)=>k==='pets'&&v>=8},
+  {id:'c10',icon:'💪',name:'Ten Correct!',desc:'Get 10 correct answers',check:(k,v)=>k==='correct'&&v>=10},
+  {id:'c50',icon:'🏆',name:'LEGENDARY',desc:'Get 50 correct answers',check:(k,v)=>k==='correct'&&v>=50},
+];
+
+function checkAch(key,val){
+  achList.forEach(a=>{
+    if(!gs.achs.includes(a.id)&&a.check(key,val)){
+      gs.achs.push(a.id);save();
+      playSound('levelup');spawnConfetti();
+      showOverlay(a.icon,`Achievement!`,a.name+' — '+a.desc);
+    }
+  });
+}
+
+function renderAchs(){
+  const g=document.getElementById('ach-grid');g.innerHTML='';
+  achList.forEach(a=>{
+    const earned=gs.achs.includes(a.id);
+    const d=document.createElement('div');d.className=`ach-card ${earned?'earned':''}`;
+    d.innerHTML=`<div class="ach-icon">${a.icon}</div><div class="ach-info"><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div>${earned?'<div class="ach-badge">✨</div>':''}`;
+    g.appendChild(d);
+  });
+}
+
+// ========== SETTINGS ==========
+function toggleSettings(){document.getElementById('settings').classList.toggle('show')}
+function togTTS(el){cfg.tts=!cfg.tts;el.classList.toggle('on',cfg.tts);save()}
+function togSTT(el){cfg.stt=!cfg.stt;el.classList.toggle('on',cfg.stt);save()}
+
+// ========== INIT ==========
+function init(){
+  updateHUD();initRec();renderPets();renderAchs();
+  const c=chars[cfg.char];
+  document.getElementById('char-display').textContent=c.emoji;
+
+  const isFree=gs.subject==='free'||gs.subject==='creative';
+  document.getElementById('free-bar').classList.toggle('on',isFree);
+  document.getElementById('answers').style.display=isFree?'none':'flex';
+
+  // Set correct tab
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.s===gs.subject));
+
+  setBubble(`Hey ${cfg.name}! Ready to learn? Let's GO! 🚀`);
+  history.push({r:'user',t:`Hi ${c.name}! I'm ${cfg.name}. Give me a fun ${gs.subject} question with answer choices!`});
+  getAI();
+}
+
+// PWA
 if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{})}
 </script>
 </body>
