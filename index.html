@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Quest Tutor">
+<meta name="theme-color" content="#0f0e2a">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Quest Tutor</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Press+Start+2P&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+:root{
+  --bg:#0f0e2a;--bg2:#1a1940;--bg3:#252358;
+  --green:#22c55e;--green-glow:#22c55e55;
+  --gold:#fbbf24;--gold-glow:#fbbf2444;
+  --diamond:#38bdf8;--diamond-glow:#38bdf844;
+  --red:#ef4444;--pink:#ec4899;
+  --purple:#a855f7;--orange:#f97316;
+  --card:rgba(255,255,255,0.06);--card-border:rgba(255,255,255,0.1);
+  --text:#f1f5f9;--text-dim:rgba(255,255,255,0.45);
+  --radius:16px;
+}
+
+body{
+  font-family:'Fredoka',sans-serif;
+  background:var(--bg);color:var(--text);
+  height:100vh;height:100dvh;overflow:hidden;
+  touch-action:manipulation;
+  -webkit-user-select:none;user-select:none;
+}
+
+.pixel{font-family:'Press Start 2P',monospace}
+
+/* ============ PARTICLES BACKGROUND ============ */
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* ============ SCREENS ============ */
+.screen{display:none;position:absolute;top:0;left:0;width:100%;height:100%;height:100dvh;flex-direction:column;z-index:1}
+.screen.active{display:flex}
+.screen-enter{animation:screenIn .35s ease}
+@keyframes screenIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* ============ SETUP ============ */
+#setup{align-items:center;justify-content:center;padding:24px;gap:14px;overflow-y:auto}
+.setup-logo{font-size:56px;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.setup-title{font-family:'Press Start 2P';font-size:clamp(16px,4vw,22px);color:var(--gold);text-shadow:0 0 20px var(--gold-glow);text-align:center}
+.setup-sub{font-size:14px;color:var(--text-dim);text-align:center;max-width:300px;line-height:1.5}
+
+.field-group{width:100%;max-width:340px}
+.field-label{font-size:11px;font-weight:600;color:var(--diamond);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;margin-top:12px}
+
+.field-input{
+  width:100%;padding:13px 16px;font-size:16px;font-family:'Fredoka';
+  background:var(--bg2);border:2px solid var(--card-border);border-radius:12px;
+  color:white;outline:none;transition:border .2s
+}
+.field-input:focus{border-color:var(--diamond)}
+.field-input::placeholder{color:var(--text-dim)}
+
+.pill-row{display:flex;gap:8px;width:100%;max-width:340px}
+.pill{
+  flex:1;padding:11px 8px;text-align:center;border-radius:12px;
+  font-size:13px;font-weight:600;cursor:pointer;
+  border:2px solid var(--card-border);background:var(--bg2);
+  transition:all .2s;color:var(--text-dim)
+}
+.pill.on{border-color:var(--diamond);background:var(--diamond-glow);color:white}
+
+.big-btn{
+  font-family:'Press Start 2P';font-size:12px;padding:16px 36px;margin-top:16px;
+  background:linear-gradient(135deg,var(--green),#16a34a);color:white;
+  border:none;border-radius:14px;cursor:pointer;
+  box-shadow:0 4px 20px var(--green-glow);transition:transform .1s
+}
+.big-btn:active{transform:scale(.95)}
+
+.note{font-size:10px;color:var(--text-dim);text-align:center;max-width:300px;line-height:1.4;margin-top:8px}
+
+/* ============ HUD ============ */
+.hud{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;background:rgba(0,0,0,.45);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  z-index:10;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.06)
+}
+.hud-left,.hud-right{display:flex;align-items:center;gap:8px}
+
+.hud-avatar{
+  width:34px;height:34px;border-radius:10px;
+  background:linear-gradient(135deg,var(--purple),var(--pink));
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;border:2px solid rgba(255,255,255,.2);
+  box-shadow:0 0 12px rgba(168,85,247,.3)
+}
+
+.hud-lv{
+  font-family:'Press Start 2P';font-size:9px;color:var(--gold);
+  background:rgba(0,0,0,.4);padding:3px 8px;border-radius:6px;
+  box-shadow:0 0 8px var(--gold-glow)
+}
+
+.xp-bar{width:70px;height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--green),#4ade80);border-radius:4px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+
+.hud-stat{font-family:'Press Start 2P';font-size:8px;display:flex;align-items:center;gap:3px}
+.hud-streak{color:var(--orange)}
+.hud-coins{color:var(--gold)}
+.hud-gems{color:var(--diamond)}
+
+.hud-btn{background:none;border:none;font-size:20px;cursor:pointer;padding:4px}
+
+/* ============ NAV TABS ============ */
+.nav{
+  display:flex;padding:6px 12px;gap:6px;overflow-x:auto;flex-shrink:0;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none
+}
+.nav::-webkit-scrollbar{display:none}
+
+.nav-tab{
+  flex-shrink:0;padding:8px 16px;border-radius:24px;
+  font-size:13px;font-weight:600;cursor:pointer;
+  background:var(--card);border:1.5px solid transparent;
+  color:var(--text-dim);transition:all .2s;white-space:nowrap
+}
+.nav-tab.on{
+  background:linear-gradient(135deg,rgba(56,189,248,.15),rgba(168,85,247,.15));
+  border-color:var(--diamond);color:white;
+  box-shadow:0 0 12px var(--diamond-glow)
+}
+
+/* ============ BOTTOM BAR ============ */
+.bottom-bar{
+  display:flex;background:rgba(0,0,0,.55);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-top:1px solid rgba(255,255,255,.06);flex-shrink:0;z-index:10
+}
+.bb-btn{
+  flex:1;padding:8px 0 6px;text-align:center;cursor:pointer;
+  border:none;background:none;color:var(--text-dim);
+  font-size:10px;font-weight:600;transition:color .2s;
+  display:flex;flex-direction:column;align-items:center;gap:2px
+}
+.bb-btn .bb-icon{font-size:22px;transition:transform .2s}
+.bb-btn.on{color:var(--diamond)}
+.bb-btn.on .bb-icon{transform:scale(1.15)}
+
+/* ============ CHAT ============ */
+.chat-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.chat{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
+
+.msg{max-width:82%;padding:12px 16px;border-radius:18px;font-size:15px;line-height:1.55;animation:msgPop .3s ease}
+@keyframes msgPop{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+.msg.bot{
+  align-self:flex-start;border-bottom-left-radius:4px;
+  background:var(--bg2);border:1px solid var(--card-border);
+  position:relative
+}
+.msg.bot .bot-name{
+  font-size:11px;font-weight:700;
+  background:linear-gradient(90deg,var(--diamond),var(--purple));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:3px
+}
+
+.msg.user{
+  align-self:flex-end;border-bottom-right-radius:4px;
+  background:linear-gradient(135deg,var(--purple),#7c3aed);
+  box-shadow:0 2px 12px rgba(168,85,247,.25)
+}
+
+.msg.sys{
+  align-self:center;background:transparent;
+  color:var(--text-dim);font-size:12px;text-align:center;max-width:90%
+}
+
+.typing{
+  display:none;align-self:flex-start;padding:12px 18px;
+  background:var(--bg2);border:1px solid var(--card-border);
+  border-radius:18px;border-bottom-left-radius:4px;gap:5px;align-items:center
+}
+.typing.on{display:flex}
+.tdot{width:7px;height:7px;background:var(--text-dim);border-radius:50%;animation:tbounce 1.2s ease infinite}
+.tdot:nth-child(2){animation-delay:.15s}
+.tdot:nth-child(3){animation-delay:.3s}
+@keyframes tbounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+
+/* Quick replies */
+.qr-wrap{display:flex;flex-wrap:wrap;gap:7px;padding:4px 14px 8px;flex-shrink:0}
+.qr{
+  padding:10px 18px;border-radius:24px;font-size:14px;font-weight:600;
+  cursor:pointer;border:2px solid var(--card-border);background:var(--bg2);
+  color:white;transition:all .15s;animation:msgPop .3s ease
+}
+.qr:active{transform:scale(.95)}
+
+/* Input */
+.input-bar{
+  display:flex;gap:8px;padding:10px 14px;flex-shrink:0;
+  background:rgba(0,0,0,.4);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  align-items:flex-end;border-top:1px solid rgba(255,255,255,.06)
+}
+
+.input-field{
+  flex:1;padding:11px 16px;font-size:16px;font-family:'Fredoka';
+  background:var(--bg2);border:2px solid var(--card-border);border-radius:24px;
+  color:white;outline:none;resize:none;min-height:42px;max-height:90px;line-height:1.4
+}
+.input-field:focus{border-color:var(--diamond)}
+.input-field::placeholder{color:var(--text-dim)}
+
+.circle-btn{
+  width:44px;height:44px;border-radius:50%;border:none;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;cursor:pointer;flex-shrink:0;transition:transform .15s
+}
+.circle-btn:active{transform:scale(.9)}
+.mic-btn{background:linear-gradient(135deg,var(--red),#dc2626)}
+.mic-btn.listening{background:linear-gradient(135deg,var(--green),#16a34a);animation:pulse 1.2s ease infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.4)}50%{box-shadow:0 0 0 14px rgba(34,197,94,0)}}
+.send-btn{background:linear-gradient(135deg,var(--diamond),#0284c7)}
+
+/* ============ PETS SCREEN ============ */
+.pets-area{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
+.pets-title{font-family:'Press Start 2P';font-size:12px;color:var(--gold);text-align:center;margin-bottom:4px}
+.pets-sub{font-size:13px;color:var(--text-dim);text-align:center;margin-bottom:16px}
+
+.pet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding-bottom:20px}
+
+.pet-card{
+  background:var(--card);border:2px solid var(--card-border);border-radius:16px;
+  padding:14px 8px;text-align:center;cursor:pointer;transition:all .2s;
+  position:relative;overflow:hidden
+}
+.pet-card.unlocked{border-color:var(--green);background:rgba(34,197,94,.08)}
+.pet-card.locked{opacity:.45;filter:grayscale(.6)}
+.pet-card.active{border-color:var(--gold);background:rgba(251,191,36,.1);box-shadow:0 0 16px var(--gold-glow)}
+.pet-card:active{transform:scale(.96)}
+
+.pet-emoji{font-size:36px;display:block;margin-bottom:6px}
+.pet-name{font-size:11px;font-weight:700;color:white}
+.pet-cost{font-size:9px;color:var(--gold);margin-top:2px;font-weight:600}
+.pet-card.unlocked .pet-cost{color:var(--green)}
+.pet-lock{position:absolute;top:6px;right:6px;font-size:12px}
+
+/* ============ ACHIEVEMENTS ============ */
+.ach-area{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
+.ach-title{font-family:'Press Start 2P';font-size:12px;color:var(--gold);text-align:center;margin-bottom:16px}
+.ach-grid{display:flex;flex-direction:column;gap:8px;padding-bottom:20px}
+
+.ach-card{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;
+  background:var(--card);border:1.5px solid var(--card-border);border-radius:14px;
+  transition:all .2s
+}
+.ach-card.earned{border-color:var(--gold);background:rgba(251,191,36,.06)}
+.ach-icon{font-size:28px;flex-shrink:0}
+.ach-info{flex:1}
+.ach-name{font-size:14px;font-weight:700}
+.ach-desc{font-size:11px;color:var(--text-dim)}
+.ach-badge{font-family:'Press Start 2P';font-size:8px;color:var(--gold)}
+.ach-card:not(.earned) .ach-icon{filter:grayscale(1);opacity:.4}
+
+/* ============ OVERLAYS ============ */
+.overlay{
+  position:fixed;top:0;left:0;width:100%;height:100%;z-index:200;
+  display:none;align-items:center;justify-content:center;flex-direction:column;
+  background:rgba(0,0,0,.88);gap:16px;padding:24px
+}
+.overlay.show{display:flex}
+
+.ov-emoji{font-size:72px;animation:float 2s ease-in-out infinite}
+.ov-title{font-family:'Press Start 2P';font-size:clamp(14px,4vw,20px);color:var(--gold);text-align:center;text-shadow:0 0 20px var(--gold-glow)}
+.ov-sub{font-size:15px;color:var(--text-dim);text-align:center}
+.ov-dismiss{font-family:'Press Start 2P';font-size:9px;color:var(--text-dim);cursor:pointer;padding:16px;margin-top:8px}
+
+/* Treasure chest */
+.chest-closed{font-size:80px;cursor:pointer;transition:transform .2s}
+.chest-closed:active{transform:scale(1.1)}
+
+/* XP float */
+.xp-fly{
+  position:fixed;font-family:'Press Start 2P';font-size:16px;color:var(--gold);
+  pointer-events:none;z-index:250;text-shadow:0 0 10px var(--gold-glow);
+  animation:fly 1.3s ease forwards
+}
+@keyframes fly{0%{opacity:1;transform:translateY(0) scale(.6)}25%{opacity:1;transform:translateY(-18px) scale(1.15)}100%{opacity:0;transform:translateY(-70px) scale(.7)}}
+
+/* Confetti */
+.confetti-piece{
+  position:fixed;width:10px;height:10px;z-index:300;pointer-events:none;
+  animation:confettiFall var(--dur) ease forwards
+}
+@keyframes confettiFall{
+  0%{opacity:1;transform:translateY(0) rotate(0deg) scale(1)}
+  100%{opacity:0;transform:translateY(var(--dy)) translateX(var(--dx)) rotate(var(--rot)) scale(.3)}
+}
+
+/* Settings */
+.settings{
+  position:fixed;top:0;left:0;width:100%;height:100%;z-index:300;
+  background:var(--bg);display:none;flex-direction:column;overflow-y:auto;padding:20px
+}
+.settings.show{display:flex}
+.settings-close{align-self:flex-end;font-size:28px;background:none;border:none;color:white;cursor:pointer;padding:8px}
+.settings-hdr{font-family:'Press Start 2P';font-size:10px;color:var(--diamond);margin:16px 0 8px}
+.settings-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.settings-row label{font-size:14px;color:rgba(255,255,255,.8)}
+.tog{
+  width:48px;height:26px;border-radius:13px;cursor:pointer;position:relative;
+  background:rgba(255,255,255,.15);border:none;transition:background .2s
+}
+.tog.on{background:var(--green)}
+.tog::after{
+  content:'';position:absolute;width:20px;height:20px;border-radius:50%;
+  background:white;top:3px;left:3px;transition:transform .2s
+}
+.tog.on::after{transform:translateX(22px)}
+.reset-btn{background:var(--red);border:none;color:white;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<!-- ====== SETUP ====== -->
+<div id="setup" class="screen active">
+  <div class="setup-logo">⚔️</div>
+  <div class="setup-title">QUEST TUTOR</div>
+  <div class="setup-sub">Your personal AI learning adventure. Set up in 2 minutes!</div>
+
+  <div class="field-group">
+    <div class="field-label">AI Provider</div>
+    <div class="pill-row">
+      <div class="pill on" data-p="anthropic" onclick="pickPill(this,'provider')">Claude</div>
+      <div class="pill" data-p="openai" onclick="pickPill(this,'provider')">OpenAI</div>
+      <div class="pill" data-p="groq" onclick="pickPill(this,'provider')">Groq (Free)</div>
+    </div>
+
+    <div class="field-label">API Key</div>
+    <input class="field-input" id="f-key" type="password" placeholder="sk-ant-... or sk-..." autocomplete="off">
+
+    <div class="field-label">Child's First Name</div>
+    <input class="field-input" id="f-name" type="text" placeholder="Enter name">
+
+    <div class="field-label">Tutor Character</div>
+    <div class="pill-row">
+      <div class="pill on" data-p="explorer" onclick="pickPill(this,'char')">🧭 Explorer</div>
+      <div class="pill" data-p="gamer" onclick="pickPill(this,'char')">🎮 Gamer</div>
+      <div class="pill" data-p="scientist" onclick="pickPill(this,'char')">🔬 Scientist</div>
+    </div>
+  </div>
+
+  <button class="big-btn" onclick="launch()">START ADVENTURE ▶</button>
+  <div class="note">Your API key stays on this device only. Nothing is tracked. No ads.</div>
+</div>
+
+<!-- ====== MAIN ====== -->
+<div id="main" class="screen">
+  <!-- HUD -->
+  <div class="hud">
+    <div class="hud-left">
+      <div class="hud-avatar" id="hud-avatar">⛏️</div>
+      <div class="hud-lv" id="hud-lv">LV 1</div>
+      <div class="xp-bar"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
+    </div>
+    <div class="hud-right">
+      <div class="hud-stat hud-streak" id="hud-streak">🔥0</div>
+      <div class="hud-stat hud-coins" id="hud-coins">💰0</div>
+      <div class="hud-stat hud-gems" id="hud-gems">💎0</div>
+      <button class="hud-btn" onclick="openSettings()">⚙️</button>
+    </div>
+  </div>
+
+  <!-- Subject nav -->
+  <div class="nav" id="nav">
+    <div class="nav-tab on" data-s="free" onclick="pickSubject(this)">💬 Chat</div>
+    <div class="nav-tab" data-s="math" onclick="pickSubject(this)">🔢 Math</div>
+    <div class="nav-tab" data-s="reading" onclick="pickSubject(this)">📖 Reading</div>
+    <div class="nav-tab" data-s="science" onclick="pickSubject(this)">🔬 Science</div>
+    <div class="nav-tab" data-s="creative" onclick="pickSubject(this)">🎨 Create</div>
+  </div>
+
+  <!-- Content pages -->
+  <div id="page-chat" class="chat-wrap" style="display:flex">
+    <div class="chat" id="chat"></div>
+    <div class="typing" id="typing"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div>
+    <div class="qr-wrap" id="qr"></div>
+    <div class="input-bar">
+      <textarea class="input-field" id="inp" placeholder="Type or tap 🎤 to talk..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}"></textarea>
+      <button class="circle-btn mic-btn" id="mic" onclick="toggleMic()">🎤</button>
+      <button class="circle-btn send-btn" onclick="send()">➡️</button>
+    </div>
+  </div>
+
+  <div id="page-pets" class="pets-area" style="display:none">
+    <div class="pets-title">🐾 MY PETS</div>
+    <div class="pets-sub">Earn coins to unlock new companions!</div>
+    <div class="pet-grid" id="pet-grid"></div>
+  </div>
+
+  <div id="page-ach" class="ach-area" style="display:none">
+    <div class="ach-title">🏆 ACHIEVEMENTS</div>
+    <div class="ach-grid" id="ach-grid"></div>
+  </div>
+
+  <!-- Bottom bar -->
+  <div class="bottom-bar">
+    <button class="bb-btn on" data-pg="chat" onclick="pickPage(this)"><span class="bb-icon">💬</span>Learn</button>
+    <button class="bb-btn" data-pg="pets" onclick="pickPage(this)"><span class="bb-icon">🐾</span>Pets</button>
+    <button class="bb-btn" data-pg="ach" onclick="pickPage(this)"><span class="bb-icon">🏆</span>Awards</button>
+  </div>
+</div>
+
+<!-- Overlays -->
+<div class="overlay" id="ov-levelup">
+  <div class="ov-emoji">⭐</div>
+  <div class="ov-title" id="ov-lv-text">LEVEL 2!</div>
+  <div class="ov-sub">You're getting smarter every day!</div>
+  <div class="ov-dismiss" onclick="closeOv('ov-levelup')">TAP TO CONTINUE</div>
+</div>
+
+<div class="overlay" id="ov-chest">
+  <div class="ov-title">TREASURE CHEST!</div>
+  <div class="ov-sub">You earned a reward! Tap to open!</div>
+  <div class="chest-closed" id="chest-icon" onclick="openChest()">🎁</div>
+  <div class="ov-sub" id="chest-result" style="display:none"></div>
+  <div class="ov-dismiss" id="chest-dismiss" style="display:none" onclick="closeOv('ov-chest')">TAP TO CONTINUE</div>
+</div>
+
+<div class="overlay" id="ov-ach">
+  <div class="ov-emoji" id="ov-ach-emoji">🏅</div>
+  <div class="ov-title" id="ov-ach-title">ACHIEVEMENT!</div>
+  <div class="ov-sub" id="ov-ach-desc"></div>
+  <div class="ov-dismiss" onclick="closeOv('ov-ach')">TAP TO CONTINUE</div>
+</div>
+
+<div class="overlay" id="ov-pet">
+  <div class="ov-emoji" id="ov-pet-emoji">🐶</div>
+  <div class="ov-title" id="ov-pet-title">NEW PET!</div>
+  <div class="ov-sub" id="ov-pet-desc"></div>
+  <div class="ov-dismiss" onclick="closeOv('ov-pet')">TAP TO CONTINUE</div>
+</div>
+
+<!-- Settings -->
+<div class="settings" id="settings">
+  <button class="settings-close" onclick="closeSettings()">✕</button>
+  <div class="settings-hdr">VOICE</div>
+  <div class="settings-row"><label>Read aloud</label><button class="tog on" id="t-tts" onclick="this.classList.toggle('on');cfg.tts=this.classList.contains('on');save()"></button></div>
+  <div class="settings-row"><label>Voice input</label><button class="tog on" id="t-stt" onclick="this.classList.toggle('on');cfg.stt=this.classList.contains('on');save()"></button></div>
+  <div class="settings-hdr">STATS</div>
+  <div class="settings-row"><label>Questions answered</label><span id="s-total" style="color:var(--gold);font-weight:700">0</span></div>
+  <div class="settings-row"><label>Correct</label><span id="s-correct" style="color:var(--green);font-weight:700">0</span></div>
+  <div class="settings-row"><label>Best streak</label><span id="s-streak" style="color:var(--orange);font-weight:700">0</span></div>
+  <div class="settings-row"><label>Pets collected</label><span id="s-pets" style="color:var(--diamond);font-weight:700">0</span></div>
+  <div class="settings-hdr">PARENT CONTROLS</div>
+  <div class="settings-row"><label>Reset all data</label><button class="reset-btn" onclick="if(confirm('Reset everything?')){localStorage.clear();location.reload()}">Reset</button></div>
+</div>
+
+<script>
+// ======== BACKGROUND PARTICLES ========
+const cvs=document.getElementById('bg-canvas'),ctx=cvs.getContext('2d');
+let stars=[];
+function resizeCvs(){cvs.width=innerWidth;cvs.height=innerHeight;stars=[];for(let i=0;i<60;i++)stars.push({x:Math.random()*cvs.width,y:Math.random()*cvs.height,r:Math.random()*1.5+.5,s:Math.random()*.3+.1,a:Math.random()})}
+resizeCvs();addEventListener('resize',resizeCvs);
+function drawStars(){ctx.clearRect(0,0,cvs.width,cvs.height);stars.forEach(s=>{s.a+=s.s*.02;const a=.2+Math.abs(Math.sin(s.a))*.6;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${a})`;ctx.fill()});requestAnimationFrame(drawStars)}
+drawStars();
+
+// ======== AUDIO ========
+const AC=window.AudioContext||window.webkitAudioContext;let ac;
+function ea(){if(!ac)ac=new AC()}
+function tone(f,d,t='square',v=.1){ea();const o=ac.createOscillator(),g=ac.createGain();o.type=t;o.frequency.value=f;g.gain.value=v;g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}
+function sfxOk(){tone(523,.08);setTimeout(()=>tone(659,.08),80);setTimeout(()=>tone(784,.12),160)}
+function sfxBad(){tone(200,.12,'sawtooth',.07);setTimeout(()=>tone(150,.15,'sawtooth',.07),120)}
+function sfxLvl(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,.12,'square',.09),i*100))}
+function sfxMsg(){tone(600,.03,'sine',.05)}
+function sfxCoin(){tone(1200,.05,'sine',.07);setTimeout(()=>tone(1600,.05,'sine',.07),50)}
+function sfxChest(){[400,500,600,800,1000,1200].forEach((f,i)=>setTimeout(()=>tone(f,.08,'sine',.06),i*60))}
+
+// ======== STATE ========
+let cfg={provider:'anthropic',key:'',name:'',char:'explorer',tts:true,stt:true};
+let gs={xp:0,lv:1,coins:0,gems:0,streak:0,best:0,total:0,correct:0,subject:'free',pets:['⛏️'],activePet:'⛏️',achs:[],dailyCorrect:0,chestsEarned:0};
+
+try{const s=JSON.parse(localStorage.getItem('qt2'));if(s){Object.assign(cfg,s.c||{});Object.assign(gs,s.g||{})}}catch(e){}
+function save(){try{localStorage.setItem('qt2',JSON.stringify({c:cfg,g:gs}))}catch(e){}}
+
+if(cfg.key&&cfg.name){document.getElementById('setup').classList.remove('active');document.getElementById('main').classList.add('active');setTimeout(init,100)}
+
+// ======== SETUP ========
+function pickPill(el,type){
+  el.parentElement.querySelectorAll('.pill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  if(type==='provider')cfg.provider=el.dataset.p;
+  if(type==='char')cfg.char=el.dataset.p;
+}
+
+function launch(){
+  const k=document.getElementById('f-key').value.trim();
+  const n=document.getElementById('f-name').value.trim();
+  if(!k){alert('Please enter your API key');return}
+  if(!n){alert("Please enter your child's name");return}
+  cfg.key=k;cfg.name=n;save();
+  document.getElementById('setup').classList.remove('active');
+  const m=document.getElementById('main');m.classList.add('active','screen-enter');
+  init();
+}
+
+// ======== PETS ========
+const PETS=[
+  {id:'⛏️',name:'Pickaxe',cost:0,fact:'Every adventurer starts here!'},
+  {id:'🐶',name:'Scout',cost:0,fact:'Dogs can smell 10,000 times better than humans!'},
+  {id:'🐱',name:'Whiskers',cost:30,fact:'Cats sleep 12-16 hours a day!'},
+  {id:'🐸',name:'Hopper',cost:50,fact:'Frogs can jump 20x their body length!'},
+  {id:'🐢',name:'Shell',cost:60,fact:'Sea turtles can live over 100 years!'},
+  {id:'🦊',name:'Blaze',cost:80,fact:'Foxes can hear mice underground!'},
+  {id:'🐙',name:'Inky',cost:100,fact:'Octopuses have 3 hearts and blue blood!'},
+  {id:'🦁',name:'Roar',cost:120,fact:'A lion\'s roar can be heard 5 miles away!'},
+  {id:'🦈',name:'Finn',cost:150,fact:'Sharks have been around longer than trees!'},
+  {id:'🦕',name:'Thunder',cost:180,fact:'Brachiosaurus was as tall as a 4-story building!'},
+  {id:'🐉',name:'Ember',cost:220,fact:'You tamed a dragon! Legendary!'},
+  {id:'🦖',name:'Rex',cost:260,fact:'T-Rex had teeth as big as bananas!'},
+  {id:'🐺',name:'Shadow',cost:300,fact:'Wolves can run 40 mph!'},
+  {id:'🦅',name:'Storm',cost:350,fact:'Eagles can see 8x better than humans!'},
+  {id:'🌟',name:'Nova',cost:500,fact:'Stars are made of super hot gas!'},
+  {id:'🚀',name:'Rocket',cost:750,fact:'You reached space! Ultimate explorer!'},
+];
+
+function renderPets(){
+  const g=document.getElementById('pet-grid');
+  g.innerHTML=PETS.map(p=>{
+    const owned=gs.pets.includes(p.id);
+    const active=gs.activePet===p.id;
+    return`<div class="pet-card ${owned?'unlocked':''} ${active?'active':''} ${!owned?'locked':''}" onclick="petTap('${p.id}')">
+      ${!owned?'<div class="pet-lock">🔒</div>':''}
+      <span class="pet-emoji">${p.id}</span>
+      <div class="pet-name">${p.name}</div>
+      <div class="pet-cost">${owned?(active?'⭐ ACTIVE':'✅ Owned'):p.cost+' 💰'}</div>
+    </div>`;
+  }).join('');
+}
+
+function petTap(id){
+  const p=PETS.find(x=>x.id===id);if(!p)return;
+  if(gs.pets.includes(id)){
+    gs.activePet=id;sfxMsg();save();renderPets();updateHUD();return;
+  }
+  if(gs.coins>=p.cost){
+    gs.coins-=p.cost;gs.pets.push(id);gs.activePet=id;
+    sfxChest();save();renderPets();updateHUD();
+    showPetUnlock(p);
+    checkAch();
+  }
+}
+
+function showPetUnlock(p){
+  document.getElementById('ov-pet-emoji').textContent=p.id;
+  document.getElementById('ov-pet-title').textContent=p.name+' UNLOCKED!';
+  document.getElementById('ov-pet-desc').textContent=p.fact;
+  document.getElementById('ov-pet').classList.add('show');
+  confettiBurst();
+}
+
+// ======== ACHIEVEMENTS ========
+const ACHS=[
+  {id:'first',name:'First Steps',desc:'Answer your first question',icon:'👣',check:()=>gs.correct>=1},
+  {id:'streak3',name:'On Fire!',desc:'Get 3 in a row',icon:'🔥',check:()=>gs.best>=3},
+  {id:'streak5',name:'Unstoppable',desc:'Get 5 in a row',icon:'⚡',check:()=>gs.best>=5},
+  {id:'streak10',name:'LEGENDARY',desc:'Get 10 in a row!',icon:'🌟',check:()=>gs.best>=10},
+  {id:'q10',name:'Getting Started',desc:'Answer 10 questions',icon:'📝',check:()=>gs.total>=10},
+  {id:'q50',name:'Scholar',desc:'Answer 50 questions',icon:'📚',check:()=>gs.total>=50},
+  {id:'q100',name:'Brain Power',desc:'Answer 100 questions',icon:'🧠',check:()=>gs.total>=100},
+  {id:'c50',name:'Coin Collector',desc:'Earn 50 coins',icon:'💰',check:()=>gs.coins>=50||gs.total*5>=50},
+  {id:'pet3',name:'Pet Lover',desc:'Collect 3 pets',icon:'🐾',check:()=>gs.pets.length>=3},
+  {id:'pet5',name:'Zookeeper',desc:'Collect 5 pets',icon:'🦁',check:()=>gs.pets.length>=5},
+  {id:'lv3',name:'Rising Star',desc:'Reach Level 3',icon:'⭐',check:()=>gs.lv>=3},
+  {id:'lv5',name:'Superstar',desc:'Reach Level 5',icon:'🌟',check:()=>gs.lv>=5},
+  {id:'lv10',name:'Master',desc:'Reach Level 10',icon:'👑',check:()=>gs.lv>=10},
+  {id:'chest3',name:'Treasure Hunter',desc:'Open 3 treasure chests',icon:'🎁',check:()=>gs.chestsEarned>=3},
+  {id:'daily10',name:'Daily Champion',desc:'Get 10 correct in one session',icon:'🏆',check:()=>gs.dailyCorrect>=10},
+];
+
+function renderAchs(){
+  const g=document.getElementById('ach-grid');
+  g.innerHTML=ACHS.map(a=>{
+    const earned=gs.achs.includes(a.id);
+    return`<div class="ach-card ${earned?'earned':''}">
+      <div class="ach-icon">${a.icon}</div>
+      <div class="ach-info"><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div>
+      ${earned?'<div class="ach-badge">✅</div>':''}
+    </div>`;
+  }).join('');
+}
+
+function checkAch(){
+  ACHS.forEach(a=>{
+    if(!gs.achs.includes(a.id)&&a.check()){
+      gs.achs.push(a.id);save();
+      document.getElementById('ov-ach-emoji').textContent=a.icon;
+      document.getElementById('ov-ach-title').textContent=a.name+'!';
+      document.getElementById('ov-ach-desc').textContent=a.desc;
+      setTimeout(()=>{document.getElementById('ov-ach').classList.add('show');sfxLvl();confettiBurst()},600);
+    }
+  });
+  renderAchs();
+}
+
+// ======== TREASURE CHESTS ========
+const CHEST_REWARDS=[
+  {type:'coins',amount:15,text:'+15 Coins! 💰',emoji:'💰'},
+  {type:'coins',amount:25,text:'+25 Coins! 💰',emoji:'💰'},
+  {type:'coins',amount:40,text:'+40 Coins! 💰💰',emoji:'💰'},
+  {type:'gems',amount:3,text:'+3 Gems! 💎',emoji:'💎'},
+  {type:'gems',amount:5,text:'+5 Gems! 💎',emoji:'💎'},
+  {type:'xp',amount:30,text:'+30 Bonus XP! ⚡',emoji:'⚡'},
+  {type:'xp',amount:50,text:'+50 Bonus XP! 🌟',emoji:'🌟'},
+];
+
+let pendingChest=null;
+
+function triggerChest(){
+  pendingChest=CHEST_REWARDS[Math.floor(Math.random()*CHEST_REWARDS.length)];
+  document.getElementById('chest-icon').textContent='🎁';
+  document.getElementById('chest-icon').style.display='';
+  document.getElementById('chest-result').style.display='none';
+  document.getElementById('chest-dismiss').style.display='none';
+  document.getElementById('ov-chest').classList.add('show');
+  sfxChest();
+}
+
+function openChest(){
+  if(!pendingChest)return;
+  const r=pendingChest;
+  document.getElementById('chest-icon').textContent=r.emoji;
+  document.getElementById('chest-icon').style.fontSize='80px';
+  document.getElementById('chest-result').textContent=r.text;
+  document.getElementById('chest-result').style.display='';
+  document.getElementById('chest-dismiss').style.display='';
+
+  if(r.type==='coins'){gs.coins+=r.amount;sfxCoin()}
+  else if(r.type==='gems'){gs.gems+=r.amount;sfxCoin()}
+  else if(r.type==='xp'){addXP(r.amount)}
+
+  gs.chestsEarned++;
+  save();updateHUD();confettiBurst();
+  pendingChest=null;
+}
+
+// ======== XP & LEVELS ========
+function xpFor(lv){return 40+lv*25}
+
+function addXP(n){
+  gs.xp+=n;
+  while(gs.xp>=xpFor(gs.lv)){
+    gs.xp-=xpFor(gs.lv);gs.lv++;
+    sfxLvl();
+    setTimeout(()=>{
+      document.getElementById('ov-lv-text').textContent=`LEVEL ${gs.lv}!`;
+      document.getElementById('ov-levelup').classList.add('show');
+      confettiBurst();
+    },400);
+    // Bonus gem every level
+    gs.gems+=2;
+  }
+  save();updateHUD();
+}
+
+function handleCorrect(){
+  sfxOk();
+  gs.streak++;gs.correct++;gs.total++;gs.dailyCorrect++;
+  if(gs.streak>gs.best)gs.best=gs.streak;
+
+  const base=10;const combo=Math.min(gs.streak-1,7)*3;
+  const earned=base+combo;
+  addXP(earned);
+  gs.coins+=5;
+  save();updateHUD();
+
+  showXP(earned);
+
+  // Treasure chest every 8 correct
+  if(gs.correct%8===0)setTimeout(triggerChest,1200);
+
+  checkAch();
+}
+
+function handleWrong(){
+  sfxBad();gs.streak=0;gs.total++;save();updateHUD();
+}
+
+function showXP(n){
+  const el=document.createElement('div');el.className='xp-fly';el.textContent=`+${n} XP`;
+  el.style.left=(innerWidth/2-40)+'px';el.style.top='45%';
+  document.body.appendChild(el);setTimeout(()=>el.remove(),1300);
+}
+
+// ======== CONFETTI ========
+function confettiBurst(){
+  const colors=['#22c55e','#fbbf24','#38bdf8','#ef4444','#a855f7','#ec4899','#f97316'];
+  for(let i=0;i<35;i++){
+    const p=document.createElement('div');p.className='confetti-piece';
+    p.style.left=Math.random()*100+'vw';p.style.top='40vh';
+    p.style.background=colors[Math.floor(Math.random()*colors.length)];
+    p.style.borderRadius=Math.random()>.5?'50%':'2px';
+    p.style.width=(6+Math.random()*8)+'px';p.style.height=(6+Math.random()*8)+'px';
+    p.style.setProperty('--dx',(Math.random()*200-100)+'px');
+    p.style.setProperty('--dy',(Math.random()*300+100)+'px');
+    p.style.setProperty('--rot',(Math.random()*1080)+'deg');
+    p.style.setProperty('--dur',(0.8+Math.random()*0.8)+'s');
+    document.body.appendChild(p);setTimeout(()=>p.remove(),2000);
+  }
+}
+
+// ======== UI ========
+function updateHUD(){
+  document.getElementById('hud-avatar').textContent=gs.activePet;
+  document.getElementById('hud-lv').textContent='LV '+gs.lv;
+  document.getElementById('xp-fill').style.width=(gs.xp/xpFor(gs.lv)*100)+'%';
+  document.getElementById('hud-streak').textContent='🔥'+gs.streak;
+  document.getElementById('hud-coins').textContent='💰'+gs.coins;
+  document.getElementById('hud-gems').textContent='💎'+gs.gems;
+
+  document.getElementById('s-total').textContent=gs.total;
+  document.getElementById('s-correct').textContent=gs.correct;
+  document.getElementById('s-streak').textContent=gs.best;
+  document.getElementById('s-pets').textContent=gs.pets.length;
+}
+
+function closeOv(id){document.getElementById(id).classList.remove('show')}
+function openSettings(){document.getElementById('settings').classList.add('show');updateHUD()}
+function closeSettings(){document.getElementById('settings').classList.remove('show')}
+
+function pickSubject(el){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  gs.subject=el.dataset.s;save();
+
+  // Switch to chat page
+  pickPage(document.querySelector('[data-pg="chat"]'));
+
+  // Reset conversation for new subject
+  history=[];
+  document.getElementById('chat').innerHTML='';document.getElementById('qr').innerHTML='';
+  const names={free:'Free Talk',math:'Math',reading:'Reading',science:'Science',creative:'Creative Mode'};
+  addMsg('sys',`Switched to ${names[gs.subject]}`);
+  getAI();
+}
+
+function pickPage(el){
+  document.querySelectorAll('.bb-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  const pg=el.dataset.pg;
+  ['chat','pets','ach'].forEach(p=>{
+    document.getElementById('page-'+p).style.display=p===pg?'flex':'none';
+  });
+  if(pg==='pets')renderPets();
+  if(pg==='ach')renderAchs();
+}
+
+// ======== CHAT ========
+let history=[];
+let busy=false;
+
+const chars={
+  explorer:{name:'Captain Quest',emoji:'🧭',style:'an adventurous explorer who frames everything as exciting expeditions and treasure hunts. Uses adventure metaphors constantly.'},
+  gamer:{name:'Pixel',emoji:'🎮',style:'a fun gaming buddy who talks like a friendly Minecraft/gaming YouTuber. Frames learning as leveling up, unlocking achievements, and boss battles.'},
+  scientist:{name:'Dr. Spark',emoji:'🔬',style:'a quirky, super-enthusiastic scientist who frames everything as amazing experiments and discoveries.'},
+};
+
+function sysPrompt(){
+  const c=chars[cfg.char];
+  let subj='';
+  if(gs.subject==='math')subj=`
+FOCUS: 1st Grade Math (Common Core aligned)
+Skills: Addition/subtraction within 20, place value (tens/ones), comparing numbers, word problems, counting by 2s/5s/10s, shapes, telling time.
+METHOD: Embed math in stories about Minecraft, animals, and adventures. Use emoji blocks for counting (🟩🟩🟩). Move concrete→pictorial→abstract. Make word problems about creepers, Mr Beast challenges, or animal facts.`;
+  else if(gs.subject==='reading')subj=`
+FOCUS: 1st Grade Reading & Phonics
+Skills: CVC words, CVCe (magic E), digraphs (sh/ch/th/wh), blends, sight words, rhyming, syllable counting, simple comprehension.
+METHOD: Build words like Minecraft crafting — sound by sound. Read micro-stories about animals/adventures. Practice sight words in silly sentences. Make phonics feel like code-breaking.`;
+  else if(gs.subject==='science')subj=`
+FOCUS: 1st Grade Science & Nature
+Topics: Animals (habitats, lifecycles, fun facts), weather, plants, senses, space basics, dinosaurs, ocean life.
+METHOD: Be a nature documentary host! Blow their mind with "did you know?" facts. Compare real animals to Minecraft mobs. Ask what animals they like and go deep.`;
+  else if(gs.subject==='creative')subj=`
+FOCUS: Creative Thinking & Imagination
+Activities: Collaborative storytelling, "what would you build?" prompts, invention ideas, silly scenarios, game design thinking.
+METHOD: Let the child lead. Build on their ideas with excitement. No wrong answers. Ask "and then what happens?"`;
+  else subj=`MODE: Free talk. Follow their curiosity. Gently weave in learning when natural.`;
+
+  return `You are ${c.name} ${c.emoji}, a personal AI tutor for a 6-year-old 1st grader named ${cfg.name}. You are ${c.style}.
+
+CRITICAL RULES FOR ENGAGING A 6-YEAR-OLD:
+1. MAX 2-3 short sentences per message. Their attention span is tiny. NEVER write long paragraphs.
+2. Use simple words. If you use a big word, explain it immediately in parentheses.
+3. Be WILDLY enthusiastic for correct answers. Use caps, emoji, and excitement. Every right answer is EPIC.
+4. NEVER say "wrong" or "incorrect." Instead: "Hmm almost! Let's try together..." or "Ooh so close! What if we count again?"
+5. Ask ONE question at a time. Never stack questions.
+6. Use LOTS of emoji — they make text visual and fun for a kid.
+7. Reference: Minecraft, Mr. Beast, animals, building, gaming, YouTube.
+8. Every 5-6 exchanges, throw in a brain break: a joke, wild animal fact, or silly question.
+9. For answer choices, format as: A) answer  B) answer  C) answer (one per line).
+10. IMPORTANT SIGNALS (the game reward system reads these):
+    - When ${cfg.name} answers correctly, include [CORRECT] in your response.
+    - When they answer incorrectly, include [TRY_AGAIN] instead.
+    - These tags are hidden from the child — just include them naturally.
+11. Start each new subject with an exciting hook, not a boring introduction.
+12. If they go off topic, gently redirect with something fun related to the topic.
+13. Celebrate streaks: "That's 3 in a row! You're ON FIRE! 🔥🔥🔥"
+14. Pet system: ${cfg.name} has a pet companion named ${PETS.find(p=>p.id===gs.activePet)?.name||'Pickaxe'}. Mention the pet occasionally in fun ways.
+
+${subj}
+
+GAME STATE: Level ${gs.lv} | Streak ${gs.streak} | ${gs.correct} correct total`;
+}
+
+async function callAPI(msgs){
+  try{
+    if(cfg.provider==='anthropic'){
+      const r=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',headers:{'Content-Type':'application/json','x-api-key':cfg.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({model:'claude-sonnet-4-5-20250514',max_tokens:250,system:sysPrompt(),messages:msgs.map(m=>({role:m.r==='bot'?'assistant':'user',content:m.t}))})
+      });
+      if(!r.ok)throw new Error(await r.text());
+      return(await r.json()).content[0].text;
+    }else if(cfg.provider==='openai'){
+      const r=await fetch('https://api.openai.com/v1/chat/completions',{
+        method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},
+        body:JSON.stringify({model:'gpt-4o-mini',max_tokens:250,messages:[{role:'system',content:sysPrompt()},...msgs.map(m=>({role:m.r==='bot'?'assistant':'user',content:m.t}))]})
+      });
+      if(!r.ok)throw new Error(''+r.status);
+      return(await r.json()).choices[0].message.content;
+    }else{
+      const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+        method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},
+        body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:250,messages:[{role:'system',content:sysPrompt()},...msgs.map(m=>({role:m.r==='bot'?'assistant':'user',content:m.t}))]})
+      });
+      if(!r.ok)throw new Error(''+r.status);
+      return(await r.json()).choices[0].message.content;
+    }
+  }catch(e){console.error(e);return`Oops, little hiccup! 🤭 Try saying that again? (${e.message})`}
+}
+
+function addMsg(role,text,noSpeak){
+  const chat=document.getElementById('chat');
+  const el=document.createElement('div');
+  el.className='msg '+role;
+  const clean=text.replace(/\[CORRECT\]/gi,'').replace(/\[TRY_AGAIN\]/gi,'').trim();
+
+  if(role==='bot'){
+    const c=chars[cfg.char];
+    el.innerHTML=`<div class="bot-name">${c.emoji} ${c.name}</div>${clean.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/([A-D]\))/g,'<br>$1')}`;
+  }else if(role==='sys'){
+    el.textContent=clean;
+  }else{
+    el.textContent=clean;
+  }
+
+  chat.appendChild(el);
+  chat.scrollTop=chat.scrollHeight;
+
+  if(role==='bot'){
+    sfxMsg();
+    if(!noSpeak)speak(clean);
+    if(text.match(/\[CORRECT\]/i))handleCorrect();
+    else if(text.match(/\[TRY_AGAIN\]/i))handleWrong();
+    extractQR(text);
+  }
+}
+
+function extractQR(text){
+  const wrap=document.getElementById('qr');wrap.innerHTML='';
+  const re=/([A-D])\)\s*([^\n\[]+)/g;const opts=[];let m;
+  while((m=re.exec(text))!==null)opts.push(m[2].trim().replace(/\[.*?\]/g,'').trim());
+  opts.forEach(o=>{
+    const b=document.createElement('button');b.className='qr';b.textContent=o;
+    b.onclick=()=>{wrap.innerHTML='';sendText(o)};
+    wrap.appendChild(b);
+  });
+}
+
+function send(){
+  const inp=document.getElementById('inp');
+  const t=inp.value.trim();if(!t||busy)return;
+  inp.value='';sendText(t);
+}
+
+function sendText(t){
+  if(busy)return;
+  document.getElementById('qr').innerHTML='';
+  addMsg('user',t);
+  history.push({r:'user',t});
+  getAI();
+}
+
+async function getAI(){
+  busy=true;
+  document.getElementById('typing').classList.add('on');
+  const chat=document.getElementById('chat');
+  chat.scrollTop=chat.scrollHeight;
+
+  const resp=await callAPI(history);
+
+  document.getElementById('typing').classList.remove('on');
+  busy=false;
+  history.push({r:'bot',t:resp});
+  addMsg('bot',resp);
+  if(history.length>30)history=history.slice(-24);
+}
+
+// ======== TTS ========
+let utt;
+function speak(text){
+  if(!cfg.tts)return;
+  if(utt)speechSynthesis.cancel();
+  const clean=text.replace(/[\u{1F000}-\u{1FFFF}]/gu,'').replace(/[*_#`]/g,'').trim();
+  if(!clean)return;
+  utt=new SpeechSynthesisUtterance(clean);utt.rate=.92;utt.pitch=1.1;
+  const v=speechSynthesis.getVoices();
+  const pick=v.find(x=>x.name.includes('Samantha'))||v.find(x=>x.name.includes('Google')&&x.lang.startsWith('en'))||v.find(x=>x.lang.startsWith('en'));
+  if(pick)utt.voice=pick;
+  speechSynthesis.speak(utt);
+}
+speechSynthesis.onvoiceschanged=()=>{};
+
+// ======== STT ========
+let rec,listening=false;
+function initRec(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
+  rec=new SR();rec.continuous=false;rec.interimResults=true;rec.lang='en-US';
+  rec.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;document.getElementById('inp').value=t;if(e.results[e.results.length-1].isFinal){stopRec();send()}};
+  rec.onend=stopRec;rec.onerror=stopRec;
+}
+
+function toggleMic(){
+  if(!rec)initRec();if(!rec){alert('Speech not available');return}
+  if(listening){rec.stop();stopRec()}
+  else{try{rec.start();listening=true;const b=document.getElementById('mic');b.classList.add('listening');b.textContent='🔴'}catch(e){}}
+}
+function stopRec(){listening=false;const b=document.getElementById('mic');b.classList.remove('listening');b.textContent='🎤'}
+
+// ======== INIT ========
+function init(){
+  updateHUD();initRec();renderPets();renderAchs();
+  addMsg('sys',`${chars[cfg.char].emoji} ${chars[cfg.char].name} is ready!`);
+  getAI();
+}
+
+// ======== PWA ========
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{})}
+</script>
+</body>
+</html>
