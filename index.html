@@ -749,6 +749,7 @@ function pickSubject(el){
   document.getElementById('chat').innerHTML='';document.getElementById('qr').innerHTML='';
   const names={free:'Free Talk',math:'Math',reading:'Reading',science:'Science',creative:'Creative Mode'};
   addMsg('sys',`Switched to ${names[gs.subject]}`);
+  history.push({r:'user',t:`Hi! Let's do ${names[gs.subject]}! Give me something fun to start with.`});
   getAI();
 }
 
@@ -821,6 +822,7 @@ GAME STATE: Level ${gs.lv} | Streak ${gs.streak} | ${gs.correct} correct total`;
 }
 
 async function callAPI(msgs){
+  if(!msgs||msgs.length===0){msgs=[{r:'user',t:'Hi! Let\'s learn something fun!'}];}
   try{
     if(cfg.provider==='anthropic'){
       const r=await fetch('https://api.anthropic.com/v1/messages',{
@@ -949,6 +951,7 @@ function stopRec(){listening=false;const b=document.getElementById('mic');b.clas
 function init(){
   updateHUD();initRec();renderPets();renderAchs();
   addMsg('sys',`${chars[cfg.char].emoji} ${chars[cfg.char].name} is ready!`);
+  history.push({r:'user',t:`Hi ${chars[cfg.char].name}! I'm ${cfg.name}. Let's have fun learning!`});
   getAI();
 }
 
